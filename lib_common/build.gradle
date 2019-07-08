@@ -1,0 +1,66 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+
+android {
+    compileSdkVersion = rootProject.ext.compileSdkVersion
+
+
+    defaultConfig {
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode = rootProject.ext.versionCode
+        versionName = rootProject.ext.versionName
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    sourceSets.main {
+        jniLibs.srcDirs = ['libs']
+    }
+
+    repositories {
+        flatDir {
+            dirs 'libs'
+        }
+    }
+}
+
+dependencies {
+    apply from: "./config.gradle"
+
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(dir: '.libs', includes: ['*.jar'])
+
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+
+    api 'androidx.appcompat:appcompat:1.1.0-rc01'
+    api 'androidx.core:core-ktx:1.2.0-alpha02'
+    api 'com.google.android.material:material:1.1.0-alpha07'
+    api 'androidx.constraintlayout:constraintlayout:1.1.3'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+
+//    api files('libs/hxd_framwork_android.aar')
+    api dependenciesMap.rxJava
+    api dependenciesMap.rxAndroid
+    api dependenciesMap.retrofit
+    api dependenciesMap.retrofit_rxjava
+    api dependenciesMap.retrofit_converter_gson
+    api dependenciesMap.okhttp_logging_interceptor
+    api dependenciesMap.lifecycle_extensions
+
+
+    //Log工具
+    api 'com.orhanobut:logger:2.2.0'
+
+
+}
