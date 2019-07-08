@@ -14,15 +14,13 @@ import com.wongki.framework.mvvm.retrofit.RetrofitLiveDataViewModel
  * desc:    .
  */
 
-class MusicViewModel:ViewModel(),RetrofitLiveDataViewModel{
+class MusicViewModel : ViewModel(), RetrofitLiveDataViewModel {
 
     override val mSystemLiveData: HashMap<String, MutableLiveData<DataWrapper<*>>?> = HashMap()
 
-    fun searchMusic(name:String){
-        val commit = newMusicRequester(this) { api ->
-            api.searchMusic(name)
-        }
-        commit.commitForArrayList(SearchMusic.Item::class.java)
+    fun searchMusic(name: String) {
+        newMusicRequester(this) { api -> api.searchMusic(name) }
+            .commitForArrayList(SearchMusic.Item::class.java)
 
     }
 
