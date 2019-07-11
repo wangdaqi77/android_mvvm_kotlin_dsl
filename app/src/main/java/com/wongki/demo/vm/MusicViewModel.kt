@@ -1,9 +1,8 @@
 package com.wongki.demo.vm
 
-import androidx.lifecycle.MutableLiveData
-import com.wongki.demo.http.newMusicRequester
-import com.wongki.framework.mvvm.lifecycle.DataWrapper
+import com.wongki.demo.http.MusicServiceCore
 import com.wongki.framework.mvvm.AbsLiveDataViewModel
+import com.wongki.framework.mvvm.retrofit.launchRemoteResp
 
 /**
  * @author  wangqi
@@ -12,13 +11,12 @@ import com.wongki.framework.mvvm.AbsLiveDataViewModel
  * desc:    .
  */
 
-class MusicViewModel :  AbsLiveDataViewModel() {
-
-    override val mSystemLiveData: HashMap<String, MutableLiveData<DataWrapper<*>>?> = HashMap()
+class MusicViewModel : AbsLiveDataViewModel() {
 
     fun searchMusic(name: String) {
-        newMusicRequester(this) { api -> api.searchMusic(name) }
-            .commitForArrayList()
+        launchRemoteResp(MusicServiceCore) {
+            searchMusic(name)
+        }.commitForArrayList()
 
     }
 }

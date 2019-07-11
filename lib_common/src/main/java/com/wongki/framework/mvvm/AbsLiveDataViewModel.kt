@@ -1,8 +1,10 @@
 package com.wongki.framework.mvvm
 
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.wongki.framework.http.retrofit.core.RetrofitServiceCore
 import com.wongki.framework.mvvm.action.EventAction
+import com.wongki.framework.mvvm.lifecycle.DataWrapper
 import com.wongki.framework.mvvm.lifecycle.ILiveDataViewModel
 import com.wongki.framework.mvvm.retrofit.IRetrofitViewModel
 
@@ -14,6 +16,8 @@ import com.wongki.framework.mvvm.retrofit.IRetrofitViewModel
  */
 
 abstract class AbsLiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveDataViewModel {
+
+    override val mSystemLiveData: HashMap<String, MutableLiveData<DataWrapper<*>>?> = HashMap()
 
     @Suppress("UNCHECKED_CAST")
     inline fun <API, reified RESPONSE_DATA : Any> RetrofitServiceCore.RetrofitRequester<API, RESPONSE_DATA>.commit(): RetrofitServiceCore.RetrofitRequester<API, RESPONSE_DATA> {
