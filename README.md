@@ -3,7 +3,7 @@
 ![mvvm_kolin.png](./assets/mvvm_kotlin.png)
 
 ## 例子
-### 1.声明
+### 1.创建ViewModel
 ```kotlin
 val musicViewModel by lazy { getLiveDataViewModel(MusicViewModel::class.java) }
 ```
@@ -35,7 +35,14 @@ musicViewModel.searchMusic(name)
 ```
 
 ## 需要实现的类
-### 1.声明
+### 1.编写Retrofit的Service接口
+```kotlin
+interface MusicApi {
+    @GET("/searchMusic")
+    fun searchMusic(@Query("name")name:String):Observable<CommonResponse<ArrayList<SearchMusic.Item>>>
+}
+```
+### 2.编写ViewModel
 ```kotlin
 class MusicViewModel : AbsLiveDataViewModel() {
 
