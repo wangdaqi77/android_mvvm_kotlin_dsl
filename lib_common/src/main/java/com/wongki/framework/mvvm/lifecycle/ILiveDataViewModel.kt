@@ -5,8 +5,9 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import com.wongki.framework.mvvm.action.EventAction
-import com.wongki.framework.mvvm.retrofit.RetrofitLiveDataViewModel
+import com.wongki.framework.mvvm.AbsLiveDataViewModel
 import java.lang.RuntimeException
+import kotlin.reflect.KClass
 
 /**
  * @author  wangqi
@@ -21,13 +22,13 @@ interface ILiveDataViewModel {
     val mSystemLiveData: HashMap<String, MutableLiveData<DataWrapper<*>>?>
 
 
-    private fun <T> getKey(type: DataType, clazz: Class<T>) = "${type.name}<${clazz.name}>"
+    private fun <T : Any> getKey(type: DataType, clazz: KClass<T>) = "${type.name}<${clazz.java.name}>"
 
     /**
      * 生成子live data
      */
     @Suppress("UNCHECKED_CAST")
-    fun <T> fork(clazz: Class<T>): MutableLiveData<DataWrapper<T>> {
+    fun <T : Any> fork(clazz: KClass<T>): MutableLiveData<DataWrapper<T>> {
         val key = getKey(DataType.Normal, clazz)
         if (!mSystemLiveData.containsKey(key)) {
             mSystemLiveData[key] = MutableLiveData<DataWrapper<T>>() as MutableLiveData<DataWrapper<*>>
@@ -39,7 +40,7 @@ interface ILiveDataViewModel {
      * 生成子live data
      */
     @Suppress("UNCHECKED_CAST")
-    fun <T> forkForArrayList(clazz: Class<T>): MutableLiveData<DataWrapper<ArrayList<T>>> {
+    fun <T : Any> forkForArrayList(clazz: KClass<T>): MutableLiveData<DataWrapper<ArrayList<T>>> {
         val key = getKey(DataType.ArrayList, clazz)
         if (!mSystemLiveData.containsKey(key)) {
             mSystemLiveData[key] = MutableLiveData<DataWrapper<ArrayList<T>>>() as MutableLiveData<DataWrapper<*>>
@@ -51,7 +52,7 @@ interface ILiveDataViewModel {
      * 获取子live data
      */
     @Suppress("UNCHECKED_CAST")
-    fun <T> getLiveData(clazz: Class<T>): MutableLiveData<DataWrapper<T>> {
+    fun <T : Any> getLiveData(clazz: KClass<T>): MutableLiveData<DataWrapper<T>> {
         val key = getKey(DataType.Normal, clazz)
         if (!mSystemLiveData.containsKey(key)) {
             throw RuntimeException("call this before please call fork")
@@ -63,7 +64,7 @@ interface ILiveDataViewModel {
      * 获取子live data
      */
     @Suppress("UNCHECKED_CAST")
-    fun <T> getLiveDataForArrayList(clazz: Class<T>): MutableLiveData<DataWrapper<ArrayList<T>>> {
+    fun <T : Any> getLiveDataForArrayList(clazz: KClass<T>): MutableLiveData<DataWrapper<ArrayList<T>>> {
         val key = getKey(DataType.ArrayList, clazz)
         if (!mSystemLiveData.containsKey(key)) {
             throw RuntimeException("call this before please call fork")
@@ -75,7 +76,7 @@ interface ILiveDataViewModel {
     /**
      * 发送数据到接收者[observe]
      */
-    fun <T> postValue(responseType: Class<T>, action: EventAction, apply: (DataWrapper<T>) -> Unit) {
+    fun <T : Any> postValue(responseType: KClass<T>, action: EventAction, apply: (DataWrapper<T>) -> Unit) {
         val dataWrapper = DataWrapper<T>()
         dataWrapper.action = action
         apply(dataWrapper)
@@ -83,7 +84,7 @@ interface ILiveDataViewModel {
         getLiveData(responseType).postValue(dataWrapper)
     }
 
-    fun <T> setValue(responseType: Class<T>, action: EventAction, apply: (DataWrapper<T>) -> Unit) {
+    fun <T : Any> setValue(responseType: KClass<T>, action: EventAction, apply: (DataWrapper<T>) -> Unit) {
         val dataWrapper = DataWrapper<T>()
         dataWrapper.action = action
         apply(dataWrapper)
@@ -95,7 +96,11 @@ interface ILiveDataViewModel {
     /**
      * 发送数据到接收者[observe]
      */
-    fun <T> postValueForArrayList(responseType: Class<T>, action: EventAction, apply: (DataWrapper<ArrayList<T>>) -> Unit) {
+    fun <T : Any> postValueForArrayList(
+        responseType: KClass<T>,
+        action: EventAction,
+        apply: (DataWrapper<ArrayList<T>>) -> Unit
+    ) {
         val dataWrapper = DataWrapper<ArrayList<T>>()
         dataWrapper.action = action
         apply(dataWrapper)
@@ -104,7 +109,11 @@ interface ILiveDataViewModel {
     }
 
 
-    fun <T> setValueForArrayList(responseType: Class<T>, action: EventAction, apply: (DataWrapper<ArrayList<T>>) -> Unit) {
+    fun <T : Any> setValueForArrayList(
+        responseType: KClass<T>,
+        action: EventAction,
+        apply: (DataWrapper<ArrayList<T>>) -> Unit
+    ) {
         val dataWrapper = DataWrapper<ArrayList<T>>()
         dataWrapper.action = action
         apply(dataWrapper)
@@ -117,9 +126,9 @@ interface ILiveDataViewModel {
 
 /**
  * 订阅，接收数据变化的事件通知
- * 通知数据变化->[RetrofitLiveDataViewModel.commit]
+ * 通知数据变化->[AbsLiveDataViewModel.commit]
  */
-fun <T> MutableLiveData<DataWrapper<T>>?.observeSimple(
+fun <T : Any> MutableLiveData<DataWrapper<T>>?.observeSimple(
     owner: LifecycleOwner,
     onFailed: (Int, String?) -> Boolean = { _, _ -> false },
     onSuccess: (T?) -> Unit
@@ -152,9 +161,9 @@ fun <T> MutableLiveData<DataWrapper<T>>?.observeSimple(
 
 /**
  * 订阅，接收数据变化的事件通知
- * 通知数据变化->[RetrofitLiveDataViewModel.commit]
+ * 通知数据变化->[AbsLiveDataViewModel.commit]
  */
-fun <T> MutableLiveData<DataWrapper<T>>?.observe(
+fun <T : Any> MutableLiveData<DataWrapper<T>>?.observe(
     owner: LifecycleOwner,
     onStart: () -> Unit,
     onCancel: () -> Unit,

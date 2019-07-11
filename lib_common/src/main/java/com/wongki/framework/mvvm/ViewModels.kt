@@ -4,9 +4,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProviders
-import com.wongki.framework.http.retrofit.lifecycle.IHttpRetrofitLifecycleObserver
-import com.wongki.framework.mvvm.retrofit.RetrofitLiveDataViewModel
-import com.wongki.framework.mvvm.retrofit.RetrofitViewModelFactory
+import com.wongki.framework.mvvm.factory.ViewModelFactory
 import java.lang.IllegalArgumentException
 
 /**
@@ -16,21 +14,19 @@ import java.lang.IllegalArgumentException
  * desc:    .
  */
 
-fun <T : ViewModel> FragmentActivity.getRetrofitLiveDataViewModel(clazz: Class<T>): T {
-    clazz.checkViewModelType(RetrofitLiveDataViewModel::class.java)
+fun <T : ViewModel> FragmentActivity.getLiveDataViewModel(clazz: Class<T>): T {
+    clazz.checkViewModelType(AbsLiveDataViewModel::class.java)
 
     val dst = this
-    val observer = if (dst is IHttpRetrofitLifecycleObserver) dst else null
 
-    return ViewModelProviders.of(this, RetrofitViewModelFactory { observer }).get(clazz)
+    return ViewModelProviders.of(this, ViewModelFactory()).get(clazz)
 }
 
-fun <T : ViewModel> Fragment.getRetrofitLiveDataViewModel(clazz: Class<T>): T {
-    clazz.checkViewModelType(RetrofitLiveDataViewModel::class.java)
+fun <T : ViewModel> Fragment.getLiveDataViewModel(clazz: Class<T>): T {
+    clazz.checkViewModelType(AbsLiveDataViewModel::class.java)
 
     val dst = this
-    val observer = if (dst is IHttpRetrofitLifecycleObserver) dst else null
-    return ViewModelProviders.of(this, RetrofitViewModelFactory { observer }).get(clazz)
+    return ViewModelProviders.of(this, ViewModelFactory()).get(clazz)
 }
 
 /**

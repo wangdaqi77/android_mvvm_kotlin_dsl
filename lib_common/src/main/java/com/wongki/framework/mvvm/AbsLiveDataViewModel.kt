@@ -1,8 +1,10 @@
-package com.wongki.framework.mvvm.retrofit
+package com.wongki.framework.mvvm
 
+import androidx.lifecycle.ViewModel
 import com.wongki.framework.http.retrofit.core.RetrofitServiceCore
 import com.wongki.framework.mvvm.action.EventAction
 import com.wongki.framework.mvvm.lifecycle.ILiveDataViewModel
+import com.wongki.framework.mvvm.retrofit.IRetrofitViewModel
 
 /**
  * @author  wangqi
@@ -11,10 +13,10 @@ import com.wongki.framework.mvvm.lifecycle.ILiveDataViewModel
  * desc:    .
  */
 
-interface RetrofitLiveDataViewModel : IRetrofitViewModel, ILiveDataViewModel {
+abstract class AbsLiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveDataViewModel {
 
     @Suppress("UNCHECKED_CAST")
-    fun <API, RESPONSE_DATA> RetrofitServiceCore.RetrofitRequester<API, RESPONSE_DATA>.commit(responseType: Class<RESPONSE_DATA>): RetrofitServiceCore.RetrofitRequester<API, RESPONSE_DATA> {
+    inline fun <API, reified RESPONSE_DATA : Any> RetrofitServiceCore.RetrofitRequester<API, RESPONSE_DATA>.commit(): RetrofitServiceCore.RetrofitRequester<API, RESPONSE_DATA> {
 //        获取RESPONSE_DATA的运行时类型，但是失败了
 //        java.lang.ClassCastException: libcore.reflect.TypeVariableImpl cannot be cast to java.lang.Class
 //        val parameterizedType = javaClass.genericSuperclass as ParameterizedType
@@ -22,18 +24,18 @@ interface RetrofitLiveDataViewModel : IRetrofitViewModel, ILiveDataViewModel {
         return this
             .onStart {
                 // 通知开始
-                postValue(responseType, EventAction.START) {
+                postValue(RESPONSE_DATA::class, EventAction.START) {
                     it.data = null
                 }
             }
             .onCancel {
                 // 通知取消
-                postValue(responseType, EventAction.CANCEL) {}
+                postValue(RESPONSE_DATA::class, EventAction.CANCEL) {}
             }
 
             .onSuccess { result ->
                 // 通知成功
-                postValue(responseType, EventAction.SUCCESS) {
+                postValue(RESPONSE_DATA::class, EventAction.SUCCESS) {
                     it.data = result
                 }
             }
@@ -43,7 +45,7 @@ interface RetrofitLiveDataViewModel : IRetrofitViewModel, ILiveDataViewModel {
                  * postValue方法是Handler发送消息，对于栈内而言此时属于异步
                  * 所以外层设置onFailed的返回值是不准确的
                  */
-                postValue(responseType, EventAction.FAILED) {
+                postValue(RESPONSE_DATA::class, EventAction.FAILED) {
                     it.code = code
                     it.message = message
                 }
@@ -53,7 +55,7 @@ interface RetrofitLiveDataViewModel : IRetrofitViewModel, ILiveDataViewModel {
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun <API,T> RetrofitServiceCore.RetrofitRequester<API, ArrayList<T>>.commitForArrayList(responseType: Class<T>): RetrofitServiceCore.RetrofitRequester<API, ArrayList<T>> {
+    inline fun <API, reified T:Any> RetrofitServiceCore.RetrofitRequester<API, ArrayList<T>>.commitForArrayList(): RetrofitServiceCore.RetrofitRequester<API, ArrayList<T>> {
 //        获取RESPONSE_DATA的运行时类型，但是失败了
 //        java.lang.ClassCastException: libcore.reflect.TypeVariableImpl cannot be cast to java.lang.Class
 //        val parameterizedType = javaClass.genericSuperclass as ParameterizedType
@@ -61,18 +63,18 @@ interface RetrofitLiveDataViewModel : IRetrofitViewModel, ILiveDataViewModel {
         return this
             .onStart {
                 // 通知开始
-                postValueForArrayList(responseType, EventAction.START) {
+                postValueForArrayList(T::class, EventAction.START) {
                     it.data = null
                 }
             }
             .onCancel {
                 // 通知取消
-                postValueForArrayList(responseType, EventAction.CANCEL) {}
+                postValueForArrayList(T::class, EventAction.CANCEL) {}
             }
 
             .onSuccess { result ->
                 // 通知成功
-                postValueForArrayList(responseType, EventAction.SUCCESS) {
+                postValueForArrayList(T::class, EventAction.SUCCESS) {
                     it.data = result as ArrayList<T>
                 }
             }
@@ -82,13 +84,17 @@ interface RetrofitLiveDataViewModel : IRetrofitViewModel, ILiveDataViewModel {
                  * postValue方法是Handler发送消息，对于栈内而言此时属于异步
                  * 所以外层设置onFailed的返回值是不准确的
                  */
-                postValueForArrayList(responseType, EventAction.FAILED) {
+                postValueForArrayList(T::class, EventAction.FAILED) {
                     it.code = code
                     it.message = message
                 }
                 false
             }
             .request()
+    }
+
+    override fun onCleared() {
+        onDestroy()
     }
 }
 

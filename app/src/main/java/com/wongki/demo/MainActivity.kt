@@ -6,7 +6,7 @@ import com.wongki.demo.model.bean.SearchMusic
 import com.wongki.demo.vm.MusicViewModel
 import com.wongki.framework.base.BaseActivity
 import com.wongki.framework.extensions.toast
-import com.wongki.framework.mvvm.getRetrofitLiveDataViewModel
+import com.wongki.framework.mvvm.getLiveDataViewModel
 import com.wongki.framework.mvvm.lifecycle.observe
 
 import kotlinx.android.synthetic.main.activity_main.*
@@ -14,7 +14,7 @@ import kotlinx.android.synthetic.main.content_main.*
 
 class MainActivity : BaseActivity() {
 
-    val musicViewModel by lazy { getRetrofitLiveDataViewModel(MusicViewModel::class.java) }
+    val musicViewModel by lazy { getLiveDataViewModel(MusicViewModel::class.java) }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -25,7 +25,7 @@ class MainActivity : BaseActivity() {
 
     private fun initViewModel() {
         // fork的目的就是生成对应的MutableLiveData对象
-        musicViewModel.forkForArrayList(SearchMusic.Item::class.java)
+        musicViewModel.forkForArrayList(SearchMusic.Item::class)
             .observe(
                 owner = this,
                 onStart = {/*开始*/},

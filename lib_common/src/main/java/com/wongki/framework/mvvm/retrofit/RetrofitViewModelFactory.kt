@@ -2,7 +2,7 @@ package com.wongki.framework.mvvm.retrofit
 
 import com.wongki.framework.extensions.WeakDelegate
 import com.wongki.framework.http.retrofit.lifecycle.IHttpRetrofitLifecycleObserver
-import com.wongki.framework.mvvm.factory.ViewModelFactory
+import com.wongki.framework.mvvm.factory.ViewModelFactoryForAdapter
 
 /**
  * @author  wangqi
@@ -10,7 +10,7 @@ import com.wongki.framework.mvvm.factory.ViewModelFactory
  * email:   wangqi7676@163.com
  * desc:    .
  */
-class RetrofitViewModelFactory(initializer: () -> IHttpRetrofitLifecycleObserver?) : ViewModelFactory<IRetrofitViewModel>() {
+class RetrofitViewModelFactory(initializer: () -> IHttpRetrofitLifecycleObserver?) : ViewModelFactoryForAdapter<IRetrofitViewModel>() {
     private val observer by WeakDelegate<IHttpRetrofitLifecycleObserver>(initializer)
     override fun adapt(modelMethod: ViewModelMethod, args: Array<Any>): Any? {
         val method = modelMethod.method

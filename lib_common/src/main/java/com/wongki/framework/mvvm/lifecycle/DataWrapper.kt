@@ -1,7 +1,7 @@
 package com.wongki.framework.mvvm.lifecycle
 
 import com.wongki.framework.mvvm.action.EventAction
-import com.wongki.framework.mvvm.retrofit.RetrofitLiveDataViewModel
+import com.wongki.framework.mvvm.AbsLiveDataViewModel
 
 /**
  * @author  wangqi
@@ -12,7 +12,7 @@ import com.wongki.framework.mvvm.retrofit.RetrofitLiveDataViewModel
  */
 open class DataWrapper<T> {
     /**
-     * 当Action发生改变时postValue[RetrofitLiveDataViewModel.commit]
+     * 当Action发生改变时postValue[AbsLiveDataViewModel.commit]
      */
     var action: EventAction = EventAction.DEFAULT
     var data: T? = null // 真正的数据

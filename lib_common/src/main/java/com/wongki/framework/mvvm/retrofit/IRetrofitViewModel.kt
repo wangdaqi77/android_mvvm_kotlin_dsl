@@ -19,7 +19,4 @@ interface IRetrofitViewModel : IHttpRetrofitLifecycleObserver {
     }
 
 
-    fun onCleared() {
-        onDestroy()
-    }
 }
