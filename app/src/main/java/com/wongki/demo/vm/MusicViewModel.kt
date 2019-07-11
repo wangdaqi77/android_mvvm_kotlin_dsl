@@ -1,4 +1,4 @@
-package com.wongki.demo
+package com.wongki.demo.vm
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel

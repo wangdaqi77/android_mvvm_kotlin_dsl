@@ -1,10 +1,9 @@
 package com.wongki.demo.http
 
-import com.wongki.demo.model.api.MusicApi
+import com.wongki.demo.model.remote.api.MusicApi
 import com.wongki.framework.http.retrofit.lifecycle.IHttpRetrofitLifecycleObserver
 import com.wongki.framework.model.domain.CommonResponse
 import io.reactivex.Observable
-import okhttp3.ResponseBody
 
 /**
  * @author  wangqi

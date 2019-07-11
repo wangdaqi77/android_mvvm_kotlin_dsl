@@ -1,4 +1,4 @@
-package com.wongki.demo.model.api
+package com.wongki.demo.model.remote.api
 
 import com.wongki.demo.model.bean.SearchMusic
 import com.wongki.framework.model.domain.CommonResponse

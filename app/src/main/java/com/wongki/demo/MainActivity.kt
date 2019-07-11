@@ -3,6 +3,7 @@ package com.wongki.demo
 import android.os.Bundle
 import com.google.android.material.snackbar.Snackbar
 import com.wongki.demo.model.bean.SearchMusic
+import com.wongki.demo.vm.MusicViewModel
 import com.wongki.framework.base.BaseActivity
 import com.wongki.framework.extensions.toast
 import com.wongki.framework.mvvm.getRetrofitLiveDataViewModel

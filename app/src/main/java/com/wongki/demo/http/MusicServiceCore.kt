@@ -1,6 +1,6 @@
 package com.wongki.demo.http
 
-import com.wongki.demo.model.api.MusicApi
+import com.wongki.demo.model.remote.api.MusicApi
 import com.wongki.framework.http.retrofit.core.RetrofitServiceCore
 
 /**
