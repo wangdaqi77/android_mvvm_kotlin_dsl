@@ -1,4 +1,4 @@
-package com.wongki.framework.mvvm.retrofit
+package com.wongki.framework.mvvm.remote
 
 import com.wongki.framework.http.retrofit.core.RetrofitServiceCore
 import com.wongki.framework.model.domain.CommonResponse

@@ -6,7 +6,8 @@ import com.wongki.framework.http.retrofit.core.RetrofitServiceCore
 import com.wongki.framework.mvvm.action.EventAction
 import com.wongki.framework.mvvm.lifecycle.DataWrapper
 import com.wongki.framework.mvvm.lifecycle.ILiveDataViewModel
-import com.wongki.framework.mvvm.retrofit.IRetrofitViewModel
+import com.wongki.framework.mvvm.remote.retrofit.IRetrofitViewModel
+import kotlin.reflect.KClass
 
 /**
  * @author  wangqi
@@ -20,11 +21,17 @@ abstract class AbsLiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveData
     override val mSystemLiveData: HashMap<String, MutableLiveData<DataWrapper<*>>?> = HashMap()
 
     @Suppress("UNCHECKED_CAST")
-    inline fun <API, reified RESPONSE_DATA : Any> RetrofitServiceCore.RetrofitRequester<API, RESPONSE_DATA>.commit(): RetrofitServiceCore.RetrofitRequester<API, RESPONSE_DATA> {
+    inline fun <API, reified RESPONSE_DATA : Any> RetrofitServiceCore.RetrofitRequester<API, RESPONSE_DATA>.commit(crossinline success: (RESPONSE_DATA?) -> Unit = {}): RetrofitServiceCore.RetrofitRequester<API, RESPONSE_DATA> {
 //        获取RESPONSE_DATA的运行时类型，但是失败了
 //        java.lang.ClassCastException: libcore.reflect.TypeVariableImpl cannot be cast to java.lang.Class
 //        val parameterizedType = javaClass.genericSuperclass as ParameterizedType
 //        val responseType = parameterizedType.actualTypeArguments[1] as Class<RESPONSE_DATA>
+        val kClass = RESPONSE_DATA::class
+        if (kClass == ArrayList::class) {
+            val kTypeParameter = kClass.typeParameters[0]
+            kTypeParameter as KClass<*>
+
+         }
         return this
             .onStart {
                 // 通知开始
@@ -38,6 +45,7 @@ abstract class AbsLiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveData
             }
 
             .onSuccess { result ->
+                success(result)
                 // 通知成功
                 postValue(RESPONSE_DATA::class, EventAction.SUCCESS) {
                     it.data = result
@@ -59,7 +67,7 @@ abstract class AbsLiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveData
     }
 
     @Suppress("UNCHECKED_CAST")
-    inline fun <API, reified T:Any> RetrofitServiceCore.RetrofitRequester<API, ArrayList<T>>.commitForArrayList(): RetrofitServiceCore.RetrofitRequester<API, ArrayList<T>> {
+    inline fun <API, reified T:Any> RetrofitServiceCore.RetrofitRequester<API, ArrayList<T>>.commitForArrayList(crossinline success: (ArrayList<T>?) -> Unit = {}): RetrofitServiceCore.RetrofitRequester<API, ArrayList<T>> {
 //        获取RESPONSE_DATA的运行时类型，但是失败了
 //        java.lang.ClassCastException: libcore.reflect.TypeVariableImpl cannot be cast to java.lang.Class
 //        val parameterizedType = javaClass.genericSuperclass as ParameterizedType
@@ -77,6 +85,7 @@ abstract class AbsLiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveData
             }
 
             .onSuccess { result ->
+                success(result)
                 // 通知成功
                 postValueForArrayList(T::class, EventAction.SUCCESS) {
                     it.data = result as ArrayList<T>

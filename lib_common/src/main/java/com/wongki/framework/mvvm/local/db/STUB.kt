@@ -1,4 +1,4 @@
-package com.wongki.framework.mvvm.db
+package com.wongki.framework.mvvm.local.db
 
 /**
  * @author  wangqi

@@ -1,4 +1,4 @@
-package com.wongki.framework.mvvm.retrofit
+package com.wongki.framework.mvvm.remote.retrofit
 
 import com.wongki.framework.http.retrofit.lifecycle.IHttpRetrofitLifecycleObserver
 import java.lang.RuntimeException
