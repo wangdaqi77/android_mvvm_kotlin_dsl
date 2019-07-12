@@ -1,7 +1,8 @@
-package com.wongki.demo
+package com.wongki.demo.view
 
 import android.os.Bundle
 import com.google.android.material.snackbar.Snackbar
+import com.wongki.demo.R
 import com.wongki.demo.model.bean.SearchMusic
 import com.wongki.demo.vm.MusicViewModel
 import com.wongki.framework.base.BaseActivity
@@ -14,6 +15,7 @@ import kotlinx.android.synthetic.main.content_main.*
 
 class MainActivity : BaseActivity() {
 
+    //1.获取ViewModel对象
     val musicViewModel by lazy { getLiveDataViewModel(MusicViewModel::class.java) }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,10 +25,11 @@ class MainActivity : BaseActivity() {
         initView()
     }
 
+
     private fun initViewModel() {
-        // fork的目的就是生成对应的MutableLiveData对象
+        // 2.fork的目的就是生成对应的MutableLiveData对象
         musicViewModel.forkForArrayList(SearchMusic.Item::class)
-            .observe(
+            .observe(// 3.订阅
                 owner = this,
                 onStart = {/*开始*/},
                 onCancel = {/*取消，当activity销毁时，准确的说是musicViewModel被onCleared()*/},
@@ -53,8 +56,6 @@ class MainActivity : BaseActivity() {
     }
 
     private fun initView() {
-
-
         fab.setOnClickListener { view ->
             val name = et_primary_key.text.toString()
             if (name.isEmpty()) {
@@ -66,20 +67,4 @@ class MainActivity : BaseActivity() {
             musicViewModel.searchMusic(name)
         }
     }
-//
-//    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-//        // Inflate the menu; this adds items to the action bar if it is present.
-//        menuInflater.inflate(R.menu.menu_main, menu)
-//        return true
-//    }
-//
-//    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-//        // Handle action bar item clicks here. The action bar will
-//        // automatically handle clicks on the Home/Up button, so long
-//        // as you specify a parent activity in AndroidManifest.xml.
-//        return when (item.itemId) {
-//            R.id.action_settings -> true
-//            else -> super.onOptionsItemSelected(item)
-//        }
-//    }
 }

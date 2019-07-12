@@ -1,8 +1,8 @@
 package com.wongki.demo.vm
 
 import com.wongki.demo.http.MusicServiceCore
-import com.wongki.demo.sp.firstMusicAuthor
-import com.wongki.demo.sp.firstMusicTitle
+import com.wongki.demo.model.local.sp.firstMusicAuthor
+import com.wongki.demo.model.local.sp.firstMusicTitle
 import com.wongki.framework.mvvm.AbsLiveDataViewModel
 import com.wongki.framework.mvvm.local.launchLocalSpResp
 import com.wongki.framework.mvvm.remote.launchRemoteResp

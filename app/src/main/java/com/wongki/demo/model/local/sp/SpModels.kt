@@ -1,4 +1,4 @@
-package com.wongki.demo.sp
+package com.wongki.demo.model.local.sp
 
 import com.feigeter.common.sp.SharedPreferencesModel
 
