@@ -19,7 +19,7 @@ musicViewModel.forkForArrayList(SearchMusic.Item::class.java)
         onCancel = {/*取消，当activity销毁时，准确的说是musicViewModel的onCleared()触发时*/},
         onFailed = { _, message ->
             // 失败
-            false
+            false  // 返回true代表上层处理，返回false代表框架处理，目前框架层会弹Toast
         }
         ,
         onSuccess = { result ->
@@ -86,4 +86,61 @@ class MusicViewModel : AbsLiveDataViewModel() {
         }
     }
 }
+```
+
+## 一次操作多次请求
+### 1.订阅
+```kotlin
+        /**
+         * 申请借款
+         */
+        mLoanViewModel.fork(LoanApplyStart.Result::class)
+                .observe(
+                        owner = this,
+                        onStart = {
+                            activity?.showLoadingDialog(seqNo = 10)
+                        },
+                        onCancel = {
+                            activity?.dialogDismiss(seqNo = 10)
+                        },
+                        onFailed = { _, _ ->
+                            activity?.dialogDismiss(seqNo = 10)
+                            false
+                        },
+                        onSuccess = { result ->
+                            activity?.dialogDismiss(seqNo = 10)
+                            result?.userState?.let { userState ->
+                                loanApplyByUserState(userState)
+                            }
+
+                        }
+
+                )
+```
+### 2.viewModel中的嵌套请求
+```kotlin
+    /**
+     * 申请借款
+     */
+    override fun loanApplyStart(days: Int) {
+        // 保存当前选择产品的天数
+        launchLocalSpResp {
+            this.currentProductDays = "$days"
+        }
+
+        val finalForkKClass = LoanApplyStart.Result::class
+
+        // 1. 申请借款前置
+        launchRemoteRespForMultiAndCommit(setStartAction = true, finalForkKClass = finalForkKClass, service = AppServiceCore, preRequest = { loanApplyStart(days) }) {result->
+            val finalResult = result ?: LoanApplyStart.Result()
+            // 2. 查询用户状态
+            launchRemoteRespForMultiAndCommit(setStartAction = false, finalForkKClass = finalForkKClass, service = AppServiceCore, preRequest = { queryUserState() }) { userState ->
+                finalResult.userState = userState
+                setValue(finalForkKClass, EventAction.SUCCESS) { 
+                    this.data = finalResult
+                }
+
+            }
+        }
+    }
 ```
