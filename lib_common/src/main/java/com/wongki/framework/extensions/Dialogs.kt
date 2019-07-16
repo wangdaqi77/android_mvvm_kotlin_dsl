@@ -21,7 +21,7 @@ fun Context.showLoadingDialog(seqNo: Int, message: String = "加载中..."): Ale
     val dialog =
         AlertDialog.Builder(this)
                     .setMessage(message)
-                    .setCancelable(false).create()
+                    .setCancelable(true).create()
     dialogs[seqNo] = WeakReference(dialog)
     dialog.show()
     return dialog
