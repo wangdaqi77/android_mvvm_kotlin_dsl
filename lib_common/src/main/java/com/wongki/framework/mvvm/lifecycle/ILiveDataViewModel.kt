@@ -73,53 +73,89 @@ interface ILiveDataViewModel {
     }
 
 
-    /**
-     * 发送数据到接收者[observe]
-     */
-    fun <T : Any> postValue(responseType: KClass<T>, action: EventAction, apply: (DataWrapper<T>) -> Unit) {
-        val dataWrapper = DataWrapper<T>()
-        dataWrapper.action = action
-        apply(dataWrapper)
-        // 发送到订阅的位置
-        getLiveData(responseType).postValue(dataWrapper)
-    }
 
-    fun <T : Any> setValue(responseType: KClass<T>, action: EventAction, apply: (DataWrapper<T>) -> Unit) {
+    fun <T : Any> setValue(responseType: KClass<T>, action: EventAction, apply: DataWrapper<T>.() -> Unit):DataWrapper<T> {
         val dataWrapper = DataWrapper<T>()
         dataWrapper.action = action
         apply(dataWrapper)
         // 发送到订阅的位置
         getLiveData(responseType).setValue(dataWrapper)
+        return dataWrapper
     }
 
 
     /**
      * 发送数据到接收者[observe]
      */
-    fun <T : Any> postValueForArrayList(
-        responseType: KClass<T>,
-        action: EventAction,
-        apply: (DataWrapper<ArrayList<T>>) -> Unit
-    ) {
-        val dataWrapper = DataWrapper<ArrayList<T>>()
-        dataWrapper.action = action
-        apply(dataWrapper)
-        // 发送到订阅的位置
-        getLiveDataForArrayList(responseType).postValue(dataWrapper)
+    fun <T : Any> KClass<T>.setValueForAction(action: EventAction) {
+        setValue(this, action) {}
     }
 
 
-    fun <T : Any> setValueForArrayList(
-        responseType: KClass<T>,
-        action: EventAction,
-        apply: (DataWrapper<ArrayList<T>>) -> Unit
-    ) {
+    /**
+     * 发送数据到接收者[observe]
+     */
+    fun <T : Any> setValueForArrayList(responseType: KClass<T>, action: EventAction, apply: DataWrapper<ArrayList<T>>.() -> Unit):DataWrapper<ArrayList<T>> {
         val dataWrapper = DataWrapper<ArrayList<T>>()
         dataWrapper.action = action
         apply(dataWrapper)
         // 发送到订阅的位置
         getLiveDataForArrayList(responseType).setValue(dataWrapper)
+        return dataWrapper
     }
+
+
+    /**
+     * 发送数据到接收者[observe]
+     */
+    fun <T : Any> KClass<T>.setValueForArrayListForAction(action: EventAction) {
+        setValueForArrayList(this, action) {}
+    }
+
+
+
+//
+//
+//    /**
+//     * 发送数据到接收者[observe]
+//     */
+//    @Deprecated("过时")
+//    fun <T : Any> postValue(responseType: KClass<T>, action: EventAction, apply: DataWrapper<T>.() -> Unit):DataWrapper<T> {
+//        val dataWrapper = DataWrapper<T>()
+//        dataWrapper.action = action
+//        apply(dataWrapper)
+//        // 发送到订阅的位置
+//        getLiveData(responseType).postValue(dataWrapper)
+//        return dataWrapper
+//    }
+//
+//    /**
+//     * 发送数据到接收者[observe]
+//     */
+//    fun <T : Any> KClass<T>.postValueForAction(action: EventAction) {
+//        postValue(this, action) {}
+//    }
+//
+//    /**
+//     * 发送数据到接收者[observe]
+//     */
+//    @Deprecated("过时")
+//    fun <T : Any> postValueForArrayList(responseType: KClass<T>, action: EventAction, apply: DataWrapper<ArrayList<T>>.() -> Unit):DataWrapper<ArrayList<T>> {
+//        val dataWrapper = DataWrapper<ArrayList<T>>()
+//        dataWrapper.action = action
+//        apply(dataWrapper)
+//        // 发送到订阅的位置
+//        getLiveDataForArrayList(responseType).postValue(dataWrapper)
+//        return dataWrapper
+//    }
+//
+//
+//    /**
+//     * 发送数据到接收者[observe]
+//     */
+//    fun <T : Any> KClass<T>.postValueForArrayListForAction(action: EventAction) {
+//        postValueForArrayList(this, action) {}
+//    }
 
 }
 

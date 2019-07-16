@@ -18,4 +18,5 @@ open class DataWrapper<T> {
     var data: T? = null // 真正的数据
     var code: Int = -1 // 错误码
     var message: String? = null // 错误信息
+    var errorProcessed = false //失败已经处理
 }

@@ -35,33 +35,28 @@ abstract class AbsLiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveData
         return this
             .onStart {
                 // 通知开始
-                postValue(RESPONSE_DATA::class, EventAction.START) {
-                    it.data = null
-                }
+                setValue(RESPONSE_DATA::class, EventAction.START) {}
             }
             .onCancel {
                 // 通知取消
-                postValue(RESPONSE_DATA::class, EventAction.CANCEL) {}
+                setValue(RESPONSE_DATA::class, EventAction.CANCEL) {}
             }
 
             .onSuccess { result ->
                 success(result)
                 // 通知成功
-                postValue(RESPONSE_DATA::class, EventAction.SUCCESS) {
-                    it.data = result
+                setValue(RESPONSE_DATA::class, EventAction.SUCCESS) {
+                    this.data = result
                 }
             }
             .onFailed { code, message ->
                 // 通知失败
-                /**
-                 * postValue方法是Handler发送消息，对于栈内而言此时属于异步
-                 * 所以外层设置onFailed的返回值是不准确的
-                 */
-                postValue(RESPONSE_DATA::class, EventAction.FAILED) {
-                    it.code = code
-                    it.message = message
+                val dataWrapper = setValue(RESPONSE_DATA::class, EventAction.FAILED) {
+                    this.code = code
+                    this.message = message
                 }
-                false
+
+                return@onFailed dataWrapper.errorProcessed
             }
             .request()
     }
@@ -75,33 +70,27 @@ abstract class AbsLiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveData
         return this
             .onStart {
                 // 通知开始
-                postValueForArrayList(T::class, EventAction.START) {
-                    it.data = null
-                }
+                setValueForArrayList(T::class, EventAction.START) {}
             }
             .onCancel {
                 // 通知取消
-                postValueForArrayList(T::class, EventAction.CANCEL) {}
+                setValueForArrayList(T::class, EventAction.CANCEL) {}
             }
 
             .onSuccess { result ->
                 success(result)
                 // 通知成功
-                postValueForArrayList(T::class, EventAction.SUCCESS) {
-                    it.data = result as ArrayList<T>
+                setValueForArrayList(T::class, EventAction.SUCCESS) {
+                    this.data = result as ArrayList<T>
                 }
             }
             .onFailed { code, message ->
                 // 通知失败
-                /**
-                 * postValue方法是Handler发送消息，对于栈内而言此时属于异步
-                 * 所以外层设置onFailed的返回值是不准确的
-                 */
-                postValueForArrayList(T::class, EventAction.FAILED) {
-                    it.code = code
-                    it.message = message
+                val dataWrapper = setValueForArrayList(T::class, EventAction.FAILED) {
+                    this.code = code
+                    this.message = message
                 }
-                false
+                return@onFailed dataWrapper.errorProcessed
             }
             .request()
     }
