@@ -88,7 +88,7 @@ class MusicViewModel : AbsLiveDataViewModel() {
 }
 ```
 
-## 一次操作多次请求
+## 例子：一次操作多次网络请求的
 ### 1.订阅
 ```kotlin
         /**
