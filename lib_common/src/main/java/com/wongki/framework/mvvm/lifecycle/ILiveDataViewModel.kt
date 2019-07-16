@@ -163,6 +163,7 @@ interface ILiveDataViewModel {
 /**
  * 订阅，接收数据变化的事件通知
  * 通知数据变化->[AbsLiveDataViewModel.commit]
+ * @param onFailed 返回true代表上层处理，返回false代表框架处理，目前框架层会弹Toast
  */
 fun <T : Any> MutableLiveData<DataWrapper<T>>?.observeSimple(
     owner: LifecycleOwner,
@@ -179,7 +180,8 @@ fun <T : Any> MutableLiveData<DataWrapper<T>>?.observeSimple(
             val action = result.action
             when (action) {
                 EventAction.FAILED -> {
-                    onFailed(result.code, result.message)
+                    val errorProcessed = onFailed(result.code, result.message)
+                    result.errorProcessed = errorProcessed
                 }
 
                 EventAction.SUCCESS -> {
@@ -198,6 +200,7 @@ fun <T : Any> MutableLiveData<DataWrapper<T>>?.observeSimple(
 /**
  * 订阅，接收数据变化的事件通知
  * 通知数据变化->[AbsLiveDataViewModel.commit]
+ * @param onFailed 返回true代表上层处理，返回false代表框架处理，目前框架层会弹Toast
  */
 fun <T : Any> MutableLiveData<DataWrapper<T>>?.observe(
     owner: LifecycleOwner,
@@ -225,7 +228,8 @@ fun <T : Any> MutableLiveData<DataWrapper<T>>?.observe(
                     onSuccess(result.data)
                 }
                 EventAction.FAILED -> {
-                    onFailed(result.code, result.message)
+                    val errorProcessed = onFailed(result.code, result.message)
+                    result.errorProcessed = errorProcessed
                 }
                 else -> {
                     Log.e("LiveDataViewModel", "未处理的Action：${action.name}")

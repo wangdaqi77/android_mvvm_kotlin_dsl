@@ -45,7 +45,7 @@ class MainActivity : BaseActivity() {
                     dialogDismiss(seqNo = 1)
                     // 失败
                     message?.toast()
-                    true
+                    true // 返回true代表上层处理，返回false代表框架处理，目前框架层会弹Toast
                 }
                 ,
                 onSuccess = { result ->
