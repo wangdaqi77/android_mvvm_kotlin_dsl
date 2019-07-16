@@ -6,6 +6,8 @@ import com.wongki.demo.R
 import com.wongki.demo.model.bean.SearchMusic
 import com.wongki.demo.vm.MusicViewModel
 import com.wongki.framework.base.BaseActivity
+import com.wongki.framework.extensions.dialogDismiss
+import com.wongki.framework.extensions.showLoadingDialog
 import com.wongki.framework.extensions.toast
 import com.wongki.framework.mvvm.getLiveDataViewModel
 import com.wongki.framework.mvvm.lifecycle.observe
@@ -31,15 +33,23 @@ class MainActivity : BaseActivity() {
         musicViewModel.forkForArrayList(SearchMusic.Item::class)
             .observe(// 3.订阅
                 owner = this,
-                onStart = {/*开始*/},
-                onCancel = {/*取消，当activity销毁时，准确的说是musicViewModel被onCleared()*/},
+                onStart = {
+                    /*开始*/
+                    showLoadingDialog(seqNo = 1)
+                },
+                onCancel = {
+                    /*取消，当activity销毁时，准确的说是musicViewModel被onCleared()*/
+                    dialogDismiss(seqNo = 1)
+                },
                 onFailed = { _, message ->
+                    dialogDismiss(seqNo = 1)
                     // 失败
                     message?.toast()
                     true
                 }
                 ,
                 onSuccess = { result ->
+                    dialogDismiss(seqNo = 1)
                     //成功
                     result?.let { list ->
                         if (list.isNotEmpty()) {
