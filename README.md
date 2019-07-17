@@ -3,13 +3,14 @@
 ![mvvm_kolin.png](./assets/mvvm_kotlin.png)
 
 ## 例子
-### 1.创建ViewModel
+### 搜索音乐
+#### 1.创建ViewModel
 ```kotlin
 val musicViewModel by lazy { getLiveDataViewModel(MusicViewModel::class.java) }
 ```
     
 
-### 2.订阅
+#### 2.订阅
 ```kotlin
 // fork的目的就是生成对应的MutableLiveData对象
 musicViewModel.forkForArrayList(SearchMusic.Item::class.java)
@@ -28,21 +29,21 @@ musicViewModel.forkForArrayList(SearchMusic.Item::class.java)
      )
 ```
 
-### 3.view点击时获取数据
+#### 3.view点击时获取数据
 ```kotlin
 // 搜索音乐
 musicViewModel.searchMusic(name)
 ```
 
-## 需要实现的类
-### 1.编写Retrofit的Service接口
+### 需要实现的类
+#### 1.编写Retrofit的Service接口
 ```kotlin
 interface MusicApi {
     @GET("/searchMusic")
     fun searchMusic(@Query("name")name:String):Observable<CommonResponse<ArrayList<SearchMusic.Item>>>
 }
 ```
-### 2.编写ViewModel
+#### 2.编写ViewModel
 ```kotlin
 class MusicViewModel : AbsLiveDataViewModel() {
 
@@ -62,8 +63,9 @@ class MusicViewModel : AbsLiveDataViewModel() {
 ```
 
 
-## 其他例子：一次操作多次网络请求
-### 1.fork订阅
+## 其他例子
+### 一次操作多次网络请求
+#### 1.fork订阅
 ```kotlin
         /**
          * 申请借款
@@ -91,7 +93,7 @@ class MusicViewModel : AbsLiveDataViewModel() {
 
                 )
 ```
-### 2.viewModel中的嵌套请求
+#### 2.viewModel中的嵌套请求
 ```kotlin
     /**
      * 申请借款
