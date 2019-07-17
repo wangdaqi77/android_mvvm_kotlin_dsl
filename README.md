@@ -51,7 +51,7 @@ class MusicViewModel : AbsLiveDataViewModel() {
          * 无需请求成功后的操作
          */
         //1. 启动远端仓库
-        launchRemoteResp(MusicServiceCore) {
+        launchRemoteRepo(MusicServiceCore) {
             // 2. 远端仓库的api请求
             searchMusic(name)
 
@@ -98,7 +98,7 @@ class MusicViewModel : AbsLiveDataViewModel() {
      */
     override fun loanApplyStart(days: Int) {
         // 保存当前选择产品的天数
-        launchLocalSpResp {
+        launchLocalSpRepo {
             this.currentProductDays = "$days"
         }
 
@@ -106,11 +106,11 @@ class MusicViewModel : AbsLiveDataViewModel() {
         val finalResult = LoanApplyStart.Result()
 
         // 1. 申请借款前置条件
-        launchRemoteResp(AppServiceCore) { loanApplyBefore(days) }
+        launchRemoteRepo(AppServiceCore) { loanApplyBefore(days) }
                 .commitMulti(setStartAction = true, finalForkKClass = finalForkKClass) { result ->
 
                     // 2. 查询用户状态
-                    launchRemoteResp(AppServiceCore) { queryUserState() }
+                    launchRemoteRepo(AppServiceCore) { queryUserState() }
                             .commitMulti(setStartAction = false, finalForkKClass = finalForkKClass) { userState ->
                                 finalResult.userState = userState
                                 setValue(finalForkKClass, EventAction.SUCCESS) {

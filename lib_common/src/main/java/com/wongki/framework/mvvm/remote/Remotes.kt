@@ -20,7 +20,7 @@ import kotlin.reflect.KClass
  * @param service 服务内核
  * @return 请求器[RetrofitServiceCore.RetrofitRequester]
  */
-inline fun <reified RESPONSE_DATA : Any, API, SERVICE : RetrofitServiceCore<API>> AbsLiveDataViewModel.launchRemoteResp(service: SERVICE, crossinline preRequest: API.() -> Observable<CommonResponse<RESPONSE_DATA>>): RetrofitServiceCore.RetrofitRequester<API, RESPONSE_DATA> {
+inline fun <reified RESPONSE_DATA : Any, API, SERVICE : RetrofitServiceCore<API>> AbsLiveDataViewModel.launchRemoteRepo(service: SERVICE, crossinline preRequest: API.() -> Observable<CommonResponse<RESPONSE_DATA>>): RetrofitServiceCore.RetrofitRequester<API, RESPONSE_DATA> {
     return service.newRequester(this) { api ->
         api.preRequest()
     }

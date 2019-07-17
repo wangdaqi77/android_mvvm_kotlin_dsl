@@ -8,7 +8,7 @@ import com.feigeter.common.sp.SharedPreferencesModel
  * desc:    .
  */
 
-inline fun Any.launchLocalSpResp(apply:SharedPreferencesModel.()->Unit) {
+inline fun Any.launchLocalSpRepo(apply:SharedPreferencesModel.()->Unit) {
     SharedPreferencesModel.apply()
 }
 
