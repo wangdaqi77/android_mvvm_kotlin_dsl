@@ -97,11 +97,6 @@ class MusicViewModel : AbsLiveDataViewModel() {
      * 申请借款
      */
     override fun loanApplyStart(days: Int) {
-        // 保存当前选择产品的天数
-        launchLocalSpResp {
-            this.currentProductDays = "$days"
-        }
-
         val finalForkKClass = LoanApplyStart.Result::class
         val finalResult = LoanApplyStart.Result()
 
