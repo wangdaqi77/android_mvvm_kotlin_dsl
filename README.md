@@ -56,7 +56,7 @@ class MusicViewModel : AbsLiveDataViewModel() {
             // 2. 远端仓库的api请求
             searchMusic(name)
 
-            //3. 提交远端仓库的api请求
+            //3. 提交远端仓库的api请求，当请求[开始、取消、成功、失败]会通知到View层订阅的地方
         }.commitForArrayList()
     }
 }
