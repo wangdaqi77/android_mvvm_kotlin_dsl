@@ -6,6 +6,7 @@ import com.wongki.framework.http.retrofit.ErrorInterceptor
 import com.wongki.framework.http.retrofit.IRetrofitRequester
 import com.wongki.framework.http.retrofit.observer.HttpCommonObserver
 import com.wongki.framework.http.retrofit.converter.GsonConverterFactory
+import com.wongki.framework.http.retrofit.converter.GsonResponseBodyConverter
 import com.wongki.framework.http.retrofit.lifecycle.IHttpRetrofitLifecycleObserver
 import com.wongki.framework.http.ssl.ISSL
 import com.wongki.framework.http.ssl.SSLFactory
@@ -77,7 +78,16 @@ abstract class RetrofitServiceCore<API> : AbsRetrofitServiceCore<API>(),ISSL {
          * 返回解析后完整的Response [CommonResponse]
          * 业务层同时设置[onSuccess]和[onFullSuccess]时，只会触发[onFullSuccess]
          */
-        private var onFullSuccess: (CommonResponse<RESPONSE_DATA>) -> Unit = { result -> onSuccess(result.result) }
+        private var onFullSuccess: (CommonResponse<RESPONSE_DATA>) -> Unit = { result ->
+            /**
+             * 特殊处理data为String，详情查看[GsonResponseBodyConverter.convert]
+             */
+            if (result.result is String) {
+                onSuccess(null)
+            } else {
+                onSuccess(result.result)
+            }
+        }
         /**
          * 返回data [CommonResponse.result]
          */

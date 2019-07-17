@@ -1,5 +1,6 @@
 package com.wongki.framework.http.retrofit.converter
 
+import android.util.Log
 import com.wongki.framework.http.exception.ApiException
 import com.wongki.framework.model.domain.CommonResponse
 import com.wongki.framework.http.HttpCode
@@ -55,44 +56,23 @@ class GsonResponseBodyConverter<T>(private val gson: Gson, private val adapter: 
 
 
             } catch (e: JsonSyntaxException) {
+
                 /**
                  * 第二次解析
+                 *
+                 * 这里是为了兼容非常"可爱"的后台数据，下面举个例子：CommonResponse<T> 当T的类型是一个数组时，
+                 * 服务器查到的数据为0个元素，正确的json格式应该是"data":[]，但是现实呢往往是残酷的，服务器此时有可能返回"data":"" ，
+                 * 所以一定会解析错误，但是我们APP此时应该显示空列表页面而不是提示用户解析错误，所以就有了以下兼容处理逻辑
+                 * 再此如果解析成功真实的类型应该是CommonResponse<String>，那么就需要在外层处理一下
+                 *
+                 * ps:如果开发前期和后台协商好了，按照正确的json格式返回，完全可以忽略这个逻辑。
                  */
                 val jsonType = object : TypeToken<CommonResponse<*>>() {
                 }.type
                 try {
                     feigeterResponse = this.gson.fromJson<T>(response, jsonType) as CommonResponse<*>
                 } catch (e: JsonSyntaxException) {
-
-                    /**
-                     * 第三次解析（强制解析成功  但是data为null）
-                     *
-                     * 这里是为了兼容非常"可爱"的后台数据，下面举个例子：FeigeterResponse<T> 当T的类型是一个数组时，
-                     * 服务器查到的数据为0个元素，正确的json格式应该是"data":[]，但是现实呢往往是残酷的，服务器此时有可能返回"data":"" ，
-                     * 所以一定会解析错误，但是我们APP此时应该显示空列表页面而不是提示用户解析错误，所以就有了以下兼容处理逻辑
-                     *
-                     * ps:如果开发前期和后台协商好了，按照正确的json格式返回，完全可以忽略这个逻辑。
-                     */
-                    try {
-                        val jsonObject = JSONObject(response)
-                        val clazz = this.javaClass as ParameterizedType
-                        val type = clazz.actualTypeArguments[0] as Class<T>
-                        feigeterResponse = type.newInstance() as CommonResponse<*>
-
-                        feigeterResponse.code = jsonObject.getInt("code")
-                        try {
-                            feigeterResponse.message = jsonObject.getString("msg")
-                        } catch (e: JSONException) {
-                        }
-                        try {
-                            feigeterResponse.count = jsonObject.getInt("count")
-                        } catch (e: JSONException) {
-                        }
-
-                        LogUtil.w("强制解析成功，data为null", "Exception -> ${e.message}", "response -> $response")
-                    } catch (e: Exception) {
-                        LogUtil.w("强制解析失败", "response -> $response")
-                    }
+                    Log.w("强制解析失败", "Exception -> ${e.message}, response -> $response")
                 }
             }
         } catch (e: Exception) {
