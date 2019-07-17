@@ -95,6 +95,30 @@ abstract class AbsLiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveData
             .request()
     }
 
+    /**
+     * 用于一次点击，多次网络请求
+     * @param setStartAction 是否发送Start事件  只有多次网络请求的第一次是需要发送Start事件
+     * @param finalForkKClass 最终订阅的kClass，与fork一一对应 [ILiveDataViewModel.fork]
+     * @param success 成功的回调
+     * @return 请求器[RetrofitServiceCore.RetrofitRequester]
+     */
+    @Suppress("UNCHECKED_CAST")
+    inline fun <reified T : Any, SERVICE, reified RESPONSE_DATA : Any> RetrofitServiceCore.RetrofitRequester<SERVICE, RESPONSE_DATA>.commitMulti(setStartAction: Boolean, finalForkKClass: KClass<T>, crossinline success: (RESPONSE_DATA?) -> Unit): RetrofitServiceCore.RetrofitRequester<SERVICE, RESPONSE_DATA> {
+        return this
+            .onStart { if (setStartAction) finalForkKClass.setValueForAction(EventAction.START) }
+            .onCancel { finalForkKClass.setValueForAction(EventAction.CANCEL) }
+            .onSuccess { result ->
+                success(result)
+            }
+            .onFailed { code, message ->
+                val dataWrapper = setValue(finalForkKClass, EventAction.FAILED) {
+                    this.code = code
+                    this.message = message
+                }
+                return@onFailed dataWrapper.errorProcessed
+            }.request()
+    }
+
     override fun onCleared() {
         onDestroy()
     }
