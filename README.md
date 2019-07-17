@@ -97,14 +97,17 @@ class MusicViewModel : AbsLiveDataViewModel() {
      * 申请借款
      */
     override fun loanApplyStart(days: Int) {
+        // 保存当前选择产品的天数
+        launchLocalSpResp {
+            this.currentProductDays = "$days"
+        }
+
         val finalForkKClass = LoanApplyStart.Result::class
+        val finalResult = LoanApplyStart.Result()
 
-
-        // 1. 申请借款前置
-        launchRemoteResp(AppServiceCore) { loanApplyStart(days) }
+        // 1. 申请借款前置条件
+        launchRemoteResp(AppServiceCore) { loanApplyBefore(days) }
                 .commitMulti(setStartAction = true, finalForkKClass = finalForkKClass) { result ->
-                    val finalResult = result ?: LoanApplyStart.Result()
-
 
                     // 2. 查询用户状态
                     launchRemoteResp(AppServiceCore) { queryUserState() }
@@ -118,4 +121,5 @@ class MusicViewModel : AbsLiveDataViewModel() {
 
                 }
     }
+
 ```
