@@ -357,8 +357,8 @@ abstract class RetrofitDownloaderServiceCore<API> : AbsRetrofitServiceCore<API>(
     override fun generateRetrofit(): Retrofit {
         val okHttpBuilder = OkHttpClient.Builder()
         //builder.cookieJar(cookieJar);
-        okHttpBuilder.addCommonUrlParams(getCommonUrlRequestParams())
-        okHttpBuilder.addCommonHeaders(getCommonRequestHeader())
+        addCommonUrlParams(okHttpBuilder)
+        addCommonHeaders(okHttpBuilder)
         okHttpBuilder.addInterceptor(HttpLoggingInterceptor(CommonLogInterceptor).setLevel(HttpLoggingInterceptor.Level.BODY))
         okHttpBuilder.addInterceptor(DownloadInterceptor)
 
