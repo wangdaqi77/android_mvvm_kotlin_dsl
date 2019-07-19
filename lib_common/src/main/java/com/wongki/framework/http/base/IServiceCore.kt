@@ -29,15 +29,11 @@ interface IServiceCore {
     /**
      * 公共的请求头
      */
-    val mCommonRequestHeader: MutableMap<String, String>
+    fun getCommonRequestHeader(): MutableMap<String, String>
 
     /**
      * 公共的请求参数-url
      */
-    val mCommonUrlRequestParams: MutableMap<String, String>
-//    /**
-//     * 公共的请求参数-请求体
-//     */
-//    val mCommonPostRequestParams: MutableMap<String, String>
+    fun getCommonUrlRequestParams(): MutableMap<String, String>
 
 }

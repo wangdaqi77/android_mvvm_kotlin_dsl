@@ -46,12 +46,13 @@ abstract class AbsRetrofitServiceCore<API> : IServiceCore, IRetrofit<API>, IHttp
     fun <T> createOther(serviceClazz: Class<T>): T {
         return mRetrofit.create(serviceClazz)
     }
+
     /**
      * 发起请求
      * @param request 默认的服务对象中具体的api请求方法
      * @param composer 线程调度
      */
-    protected fun <RESPONSE,RESPONSE_MAP> request(
+    protected fun <RESPONSE, RESPONSE_MAP> request(
         request: (API) -> Observable<RESPONSE>,
         composer: ObservableTransformer<RESPONSE, RESPONSE_MAP>
     ): Observable<RESPONSE_MAP> {
@@ -112,11 +113,14 @@ abstract class AbsRetrofitServiceCore<API> : IServiceCore, IRetrofit<API>, IHttp
     }
 
 
-    protected fun OkHttpClient.Builder.addCommonHeaders(map: MutableMap<String, String>) {
-        if (map.isEmpty()) return
-        addInterceptor { chain ->
+    protected fun addCommonHeaders(okHttp: OkHttpClient.Builder) {
+        okHttp.addInterceptor { chain ->
+            val commonRequestHeader = getCommonRequestHeader()
+            if (commonRequestHeader.isEmpty()) {
+                return@addInterceptor chain.proceed(chain.request())
+            }
             val requestBuilder = chain.request().newBuilder()
-            for (entry in map) {
+            for (entry in commonRequestHeader) {
                 requestBuilder.addHeader(entry.key, entry.value)
             }
             return@addInterceptor chain.proceed(requestBuilder.build())
@@ -124,18 +128,20 @@ abstract class AbsRetrofitServiceCore<API> : IServiceCore, IRetrofit<API>, IHttp
     }
 
 
-    protected fun OkHttpClient.Builder.addCommonUrlParams(map: MutableMap<String, String>) {
-        if (map.isEmpty()) return
-        addInterceptor { chain ->
+    protected fun addCommonUrlParams(okHttp: OkHttpClient.Builder) {
+        okHttp.addInterceptor { chain ->
+            val commonUrlRequestParams = getCommonUrlRequestParams()
+            if (commonUrlRequestParams.isEmpty()) {
+                return@addInterceptor chain.proceed(chain.request())
+            }
             val urlBuilder = chain.request().url().newBuilder()
-            for (entry in map) {
+            for (entry in commonUrlRequestParams) {
                 urlBuilder.addQueryParameter(entry.key, entry.value)
             }
             val requestBuilder = chain.request().newBuilder().url(urlBuilder.build())
             return@addInterceptor chain.proceed(requestBuilder.build())
         }
     }
-
 }
 
 

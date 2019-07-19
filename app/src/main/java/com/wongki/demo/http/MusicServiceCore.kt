@@ -15,12 +15,12 @@ object MusicServiceCore : RetrofitServiceCore<MusicApi>() {
     /**
      * 公共请求头
      */
-    override var mCommonRequestHeader: MutableMap<String, String> = mutableMapOf()
+    override fun getCommonRequestHeader(): MutableMap<String, String> = mutableMapOf()
 
     /**
      * 公共Url参数
      * ex: &sex=1&age=18
      */
-    override var mCommonUrlRequestParams: MutableMap<String, String> = mutableMapOf()
+    override fun getCommonUrlRequestParams(): MutableMap<String, String> = mutableMapOf()
 
 }

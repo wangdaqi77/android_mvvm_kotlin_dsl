@@ -40,8 +40,8 @@ abstract class RetrofitDownloaderServiceCore<API> : AbsRetrofitServiceCore<API>(
         val DEFAULT_onCancel: () -> Unit = {}
     }
 
-    override val mCommonRequestHeader: MutableMap<String, String> = mutableMapOf()
-    override val mCommonUrlRequestParams: MutableMap<String, String> = mutableMapOf()
+    override fun getCommonRequestHeader(): MutableMap<String, String> = mutableMapOf()
+    override fun getCommonUrlRequestParams(): MutableMap<String, String> = mutableMapOf()
 
 
     /**
@@ -357,8 +357,8 @@ abstract class RetrofitDownloaderServiceCore<API> : AbsRetrofitServiceCore<API>(
     override fun generateRetrofit(): Retrofit {
         val okHttpBuilder = OkHttpClient.Builder()
         //builder.cookieJar(cookieJar);
-        okHttpBuilder.addCommonUrlParams(mCommonUrlRequestParams)
-        okHttpBuilder.addCommonHeaders(mCommonRequestHeader)
+        okHttpBuilder.addCommonUrlParams(getCommonUrlRequestParams())
+        okHttpBuilder.addCommonHeaders(getCommonRequestHeader())
         okHttpBuilder.addInterceptor(HttpLoggingInterceptor(CommonLogInterceptor).setLevel(HttpLoggingInterceptor.Level.BODY))
         okHttpBuilder.addInterceptor(DownloadInterceptor)
 
