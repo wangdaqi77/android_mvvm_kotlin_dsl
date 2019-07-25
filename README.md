@@ -14,15 +14,8 @@ val musicViewModel by lazy { getLiveDataViewModel(MusicViewModel::class.java) }
 ```kotlin
 // fork的目的就是生成对应的MutableLiveData对象
 musicViewModel.forkForArrayList(SearchMusic.Item::class.java)
-    .observe(
+    .observeSimple(
         owner = this,
-        onStart = {/*开始*/},
-        onCancel = {/*取消，当activity销毁时，准确的说是musicViewModel的onCleared()触发时*/},
-        onFailed = { _, message ->
-            // 失败
-            false  // 返回true代表上层处理，返回false代表框架处理，目前框架层会弹Toast
-        }
-        ,
         onSuccess = { result ->
             //成功
         }
@@ -74,17 +67,17 @@ class MusicViewModel : AbsLiveDataViewModel() {
                 .observe(
                         owner = this,
                         onStart = {
-                            activity?.showLoadingDialog(seqNo = 10)
+                            showLoadingDialog(seqNo = 1)
                         },
                         onCancel = {
-                            activity?.dialogDismiss(seqNo = 10)
+                            dialogDismiss(seqNo = 1)
                         },
                         onFailed = { _, _ ->
-                            activity?.dialogDismiss(seqNo = 10)
+                            dialogDismiss(seqNo = 1)
                             false
                         },
                         onSuccess = { result ->
-                            activity?.dialogDismiss(seqNo = 10)
+                            dialogDismiss(seqNo = 1)
                             result?.userState?.let { userState ->
                                 loanApplyByUserState(userState)
                             }
