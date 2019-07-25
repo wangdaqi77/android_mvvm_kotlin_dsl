@@ -92,7 +92,7 @@ class MusicViewModel : AbsLiveDataViewModel() {
      * 申请借款
      */
     override fun loanApplyStart(days: Int) {
-        val finalForkKClass = LoanApplyStart.Result::class
+        val finalForkKClass = LoanApplyStart.Result::class // 和fork时的class一致
         val finalResult = LoanApplyStart.Result()
 
         // 1. 申请借款前置条件
@@ -103,9 +103,11 @@ class MusicViewModel : AbsLiveDataViewModel() {
                     launchRemoteRepo(AppServiceCore) { queryUserState() }
                             .commitMulti(setStartAction = false, finalForkKClass = finalForkKClass) { userState ->
                                 finalResult.userState = userState
+                                // 发送到observe订阅的onSuccess
                                 setValue(finalForkKClass, EventAction.SUCCESS) {
                                     this.data = finalResult
                                 }
+                            
                             }
 
 
