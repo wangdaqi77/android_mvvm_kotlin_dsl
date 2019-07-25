@@ -9,8 +9,8 @@ import java.lang.reflect.Method
  * date:    2019/7/3
  * email:   wangqi7676@163.com
  * desc:
- *          该类的主要作用是：创建ViewModel和桥接View和ViewModel，降低耦合
- *          利用动态代理或者其他技术来进行数据交换
+ *          该类的主要作用是：创建ViewModel时桥接View和ViewModel，降低耦合
+ *          利用技术来进行数据绑定
  *
  */
 abstract class ViewModelFactoryForAdapter<PROXY_INTERFACE> : ViewModelProvider.Factory {
