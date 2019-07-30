@@ -14,19 +14,18 @@ import java.lang.IllegalArgumentException
  * desc:    .
  */
 
-fun <T : ViewModel> FragmentActivity.getLiveDataViewModel(clazz: Class<T>): T {
-    clazz.checkViewModelType(AbsLiveDataViewModel::class.java)
+inline fun <reified T: ViewModel> FragmentActivity.getLiveDataViewModel(): T {
+    val viewModelJavaClazz = T::class.java
+    viewModelJavaClazz.checkViewModelType(AbsLiveDataViewModel::class.java)
 
-    val dst = this
-
-    return ViewModelProviders.of(this, ViewModelFactory()).get(clazz)
+    return ViewModelProviders.of(this, ViewModelFactory()).get(viewModelJavaClazz)
 }
 
-fun <T : ViewModel> Fragment.getLiveDataViewModel(clazz: Class<T>): T {
-    clazz.checkViewModelType(AbsLiveDataViewModel::class.java)
+inline fun <reified T: ViewModel> Fragment.getLiveDataViewModel(): T {
+    val viewModelJavaClazz = T::class.java
+    viewModelJavaClazz.checkViewModelType(AbsLiveDataViewModel::class.java)
 
-    val dst = this
-    return ViewModelProviders.of(this, ViewModelFactory()).get(clazz)
+    return ViewModelProviders.of(this, ViewModelFactory()).get(viewModelJavaClazz)
 }
 
 /**

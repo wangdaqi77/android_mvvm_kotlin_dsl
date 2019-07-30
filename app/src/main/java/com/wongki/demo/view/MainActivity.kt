@@ -18,7 +18,8 @@ import kotlinx.android.synthetic.main.content_main.*
 class MainActivity : BaseActivity() {
 
     //1.获取ViewModel对象
-    val musicViewModel by lazy { getLiveDataViewModel(MusicViewModel::class.java) }
+    private val musicViewModel by lazy { getLiveDataViewModel<MusicViewModel>() }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -42,20 +43,19 @@ class MainActivity : BaseActivity() {
                     dialogDismiss(seqNo = 1)
                 },
                 onFailed = { _, message ->
-                    dialogDismiss(seqNo = 1)
                     // 失败
+                    dialogDismiss(seqNo = 1)
                     message?.toast()
                     true // 返回true代表上层处理，返回false代表框架处理，目前框架层会弹Toast
                 }
                 ,
                 onSuccess = { result ->
-                    dialogDismiss(seqNo = 1)
                     //成功
+                    dialogDismiss(seqNo = 1)
                     result?.let { list ->
                         if (list.isNotEmpty()) {
                             val item = list.first()
-                            Snackbar.make(fab, "《${item.title}》 - ${item.author}", Snackbar.LENGTH_LONG)
-                                .setAction("Action", null).show()
+                            Snackbar.make(fab, "《${item.title}》 - ${item.author}", Snackbar.LENGTH_LONG).setAction("Action", null).show()
                         }
 
                     }
@@ -68,13 +68,23 @@ class MainActivity : BaseActivity() {
     private fun initView() {
         fab.setOnClickListener { view ->
             val name = et_primary_key.text.toString()
-            if (name.isEmpty()) {
-                Snackbar.make(view, "请输入关键字~", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show()
+
+            checkEmpty(name) {
+                Snackbar.make(view, "请输入关键字~", Snackbar.LENGTH_LONG).setAction("Action", null).show()
                 return@setOnClickListener
             }
+
             // 搜索音乐
             musicViewModel.searchMusic(name)
         }
+    }
+
+    private inline fun checkEmpty(name: String, onEmpty: () -> Unit): Boolean {
+        if (name.isEmpty()) {
+            onEmpty()
+            return true
+        }
+
+        return false
     }
 }

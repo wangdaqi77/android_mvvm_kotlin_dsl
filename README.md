@@ -6,7 +6,7 @@
 ### 搜索音乐
 #### 1.创建ViewModel
 ```kotlin
-val musicViewModel by lazy { getLiveDataViewModel(MusicViewModel::class.java) }
+val musicViewModel by lazy { getLiveDataViewModel<MusicViewModel>() }
 ```
     
 
@@ -41,16 +41,14 @@ interface MusicApi {
 class MusicViewModel : AbsLiveDataViewModel() {
 
     fun searchMusic(name: String) {
-        /**
-         * 无需请求成功后的操作
-         */
+
         //1. 启动远端仓库
         launchRemoteRepo(MusicServiceCore) {
             // 2. 远端仓库的api请求
             searchMusic(name)
-
             //3. 提交远端仓库的api请求，当请求[开始、取消、成功、失败]会通知到View层订阅的地方
         }.commitForArrayList()
+        
     }
 }
 ```
