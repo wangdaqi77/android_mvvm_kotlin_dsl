@@ -10,7 +10,6 @@ import com.wongki.framework.extensions.dialogDismiss
 import com.wongki.framework.extensions.showLoadingDialog
 import com.wongki.framework.extensions.toast
 import com.wongki.framework.mvvm.getLiveDataViewModel
-import com.wongki.framework.mvvm.lifecycle.observe
 
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
@@ -30,8 +29,10 @@ class MainActivity : BaseActivity() {
 
 
     private fun initViewModel() {
+        musicViewModel.fork(String::class)
         // 2.fork的目的就是生成对应的MutableLiveData对象
-        musicViewModel.forkForArrayList(SearchMusic.Item::class)
+        musicViewModel
+            .forkForArrayList(SearchMusic.Item::class)
             .observe(// 3.订阅
                 owner = this,
                 onStart = {
@@ -55,7 +56,8 @@ class MainActivity : BaseActivity() {
                     result?.let { list ->
                         if (list.isNotEmpty()) {
                             val item = list.first()
-                            Snackbar.make(fab, "《${item.title}》 - ${item.author}", Snackbar.LENGTH_LONG).setAction("Action", null).show()
+                            Snackbar.make(fab, "《${item.title}》 - ${item.author}", Snackbar.LENGTH_LONG)
+                                .setAction("Action", null).show()
                         }
 
                     }

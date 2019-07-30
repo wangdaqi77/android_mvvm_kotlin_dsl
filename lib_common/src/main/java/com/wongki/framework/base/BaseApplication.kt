@@ -1,6 +1,6 @@
 package com.wongki.framework.base
 
-import android.app.Application
+import androidx.multidex.MultiDexApplication
 
 /**
  * @author  wangqi
@@ -8,7 +8,7 @@ import android.app.Application
  * email:   wangqi@feigeter.com
  * desc:    .
  */
-open class BaseApplication : Application() {
+open class BaseApplication : MultiDexApplication() {
     companion object {
         lateinit var instance: BaseApplication
     }

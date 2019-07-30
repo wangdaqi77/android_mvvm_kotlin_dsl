@@ -63,5 +63,8 @@ dependencies {
     //Log工具
     api 'com.orhanobut:logger:2.2.0'
 
+    api "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+    api 'com.android.support:multidex:1.0.3'
+
 
 }

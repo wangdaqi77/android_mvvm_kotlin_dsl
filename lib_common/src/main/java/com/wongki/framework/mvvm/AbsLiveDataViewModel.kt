@@ -1,12 +1,13 @@
 package com.wongki.framework.mvvm
 
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.wongki.framework.http.retrofit.core.RetrofitServiceCore
 import com.wongki.framework.mvvm.action.EventAction
-import com.wongki.framework.mvvm.lifecycle.DataWrapper
+import com.wongki.framework.mvvm.lifecycle.DataType
 import com.wongki.framework.mvvm.lifecycle.ILiveDataViewModel
+import com.wongki.framework.mvvm.lifecycle.WrapLiveData
 import com.wongki.framework.mvvm.remote.retrofit.IRetrofitViewModel
+import java.lang.RuntimeException
 import kotlin.reflect.KClass
 
 /**
@@ -18,40 +19,88 @@ import kotlin.reflect.KClass
 
 abstract class AbsLiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveDataViewModel {
 
-    override val mSystemLiveData: HashMap<String, MutableLiveData<DataWrapper<*>>?> = HashMap()
+    override val mSystemLiveData: HashMap<String, WrapLiveData<*>?> = HashMap()
+
+
+    inline fun <reified T : Any> getKey(type: DataType, clazz: KClass<T>) = "${type.name}<${clazz.java.name}>"
+
+    /**
+     * 生成子live data
+     */
+    @Suppress("UNCHECKED_CAST")
+    inline fun <reified T : Any> fork(clazz: KClass<T>): WrapLiveData<T> {
+        val key = getKey(DataType.Normal, clazz)
+        if (!mSystemLiveData.containsKey(key)) {
+            mSystemLiveData[key] = WrapLiveData<T>() as WrapLiveData<*>
+        }
+        return mSystemLiveData[key] as WrapLiveData<T>
+    }
+
+    /**
+     * 生成子live data
+     */
+    @Suppress("UNCHECKED_CAST")
+    inline fun <reified T : Any> forkForArrayList(clazz: KClass<T>): WrapLiveData<ArrayList<T>> {
+        val key = getKey(DataType.ArrayList, clazz)
+        if (!mSystemLiveData.containsKey(key)) {
+            mSystemLiveData[key] = WrapLiveData<ArrayList<T>>() as WrapLiveData<*>
+        }
+        return mSystemLiveData[key] as WrapLiveData<ArrayList<T>>
+    }
+
+
+    /**
+     * 获取子live data
+     */
+    @Suppress("UNCHECKED_CAST")
+    inline fun <reified T : Any> getLiveData(clazz: KClass<T>): WrapLiveData<T> {
+        val key = getKey(DataType.Normal, clazz)
+        if (!mSystemLiveData.containsKey(key)) {
+            throw RuntimeException("call this before please call fork")
+        }
+        return mSystemLiveData[key] as WrapLiveData<T>
+    }
+
+    /**
+     * 获取子live data
+     */
+    @Suppress("UNCHECKED_CAST")
+    inline fun <reified T : Any> getLiveDataForArrayList(clazz: KClass<T>): WrapLiveData<ArrayList<T>> {
+        val key = getKey(DataType.ArrayList, clazz)
+        if (!mSystemLiveData.containsKey(key)) {
+            throw RuntimeException("call this before please call fork")
+        }
+        return mSystemLiveData[key] as WrapLiveData<ArrayList<T>>
+    }
 
     @Suppress("UNCHECKED_CAST")
-    inline fun <API, reified RESPONSE_DATA : Any> RetrofitServiceCore.RetrofitRequester<API, RESPONSE_DATA>.commit(crossinline success: (RESPONSE_DATA?) -> Unit = {}): RetrofitServiceCore.RetrofitRequester<API, RESPONSE_DATA> {
-//        获取RESPONSE_DATA的运行时类型，但是失败了
-//        java.lang.ClassCastException: libcore.reflect.TypeVariableImpl cannot be cast to java.lang.Class
-//        val parameterizedType = javaClass.genericSuperclass as ParameterizedType
-//        val responseType = parameterizedType.actualTypeArguments[1] as Class<RESPONSE_DATA>
-        val kClass = RESPONSE_DATA::class
-        if (kClass == ArrayList::class) {
-            val kTypeParameter = kClass.typeParameters[0]
-            kTypeParameter as KClass<*>
+    inline fun <API, reified RESPONSE_DATA : Any> RetrofitServiceCore.RetrofitRequester<API, RESPONSE_DATA>.commit(
+        crossinline success: (RESPONSE_DATA?) -> Unit = {}
+    ): RetrofitServiceCore.RetrofitRequester<API, RESPONSE_DATA> {
 
-         }
         return this
             .onStart {
                 // 通知开始
-                setValue(RESPONSE_DATA::class, EventAction.START) {}
+                getLiveData(RESPONSE_DATA::class).setValueForAction(EventAction.START)
             }
             .onCancel {
                 // 通知取消
-                setValue(RESPONSE_DATA::class, EventAction.CANCEL) {}
+                getLiveData(RESPONSE_DATA::class).setValueForAction(EventAction.CANCEL)
             }
 
             .onSuccess { result ->
                 success(result)
                 // 通知成功
-                setValue(RESPONSE_DATA::class, EventAction.SUCCESS) {
-                    this.data = result
+
+                getLiveData(RESPONSE_DATA::class).setValue(EventAction.SUCCESS) {
+                    if (result != null) {
+                        this.data = result
+                    }
                 }
             }
             .onFailed { code, message ->
                 // 通知失败
-                val dataWrapper = setValue(RESPONSE_DATA::class, EventAction.FAILED) {
+                val dataWrapper = getLiveData(RESPONSE_DATA::class).setValue(EventAction.FAILED) {
                     this.code = code
                     this.message = message
                 }
@@ -62,34 +111,37 @@ abstract class AbsLiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveData
     }
 
     @Suppress("UNCHECKED_CAST")
-    inline fun <API, reified T:Any> RetrofitServiceCore.RetrofitRequester<API, ArrayList<T>>.commitForArrayList(crossinline success: (ArrayList<T>?) -> Unit = {}): RetrofitServiceCore.RetrofitRequester<API, ArrayList<T>> {
-//        获取RESPONSE_DATA的运行时类型，但是失败了
-//        java.lang.ClassCastException: libcore.reflect.TypeVariableImpl cannot be cast to java.lang.Class
-//        val parameterizedType = javaClass.genericSuperclass as ParameterizedType
-//        val responseType = parameterizedType.actualTypeArguments[1] as Class<RESPONSE_DATA>
+    inline fun <API, reified T : Any> RetrofitServiceCore.RetrofitRequester<API, ArrayList<T>>.commitForArrayList(
+        crossinline success: (ArrayList<T>?) -> Unit = {}
+    ): RetrofitServiceCore.RetrofitRequester<API, ArrayList<T>> {
+
         return this
             .onStart {
                 // 通知开始
-                setValueForArrayList(T::class, EventAction.START) {}
+                getLiveDataForArrayList(T::class).setValueForArrayListForAction<T>(EventAction.START)
             }
             .onCancel {
                 // 通知取消
-                setValueForArrayList(T::class, EventAction.CANCEL) {}
+                getLiveDataForArrayList(T::class).setValueForArrayListForAction<T>(EventAction.CANCEL)
             }
 
             .onSuccess { result ->
                 success(result)
                 // 通知成功
-                setValueForArrayList(T::class, EventAction.SUCCESS) {
-                    this.data = result as ArrayList<T>
+                getLiveDataForArrayList(T::class).setValueForArrayList<T>(EventAction.SUCCESS) {
+                    if (result != null) {
+                        this.data = result
+                    }
                 }
+
             }
             .onFailed { code, message ->
                 // 通知失败
-                val dataWrapper = setValueForArrayList(T::class, EventAction.FAILED) {
+                val dataWrapper = getLiveDataForArrayList(T::class).setValueForArrayList<T>(EventAction.SUCCESS) {
                     this.code = code
                     this.message = message
                 }
+
                 return@onFailed dataWrapper.errorProcessed
             }
             .request()
@@ -98,20 +150,24 @@ abstract class AbsLiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveData
     /**
      * 用于一次点击，多次网络请求
      * @param setStartAction 是否发送Start事件  只有多次网络请求的第一次是需要发送Start事件
-     * @param finalForkKClass 最终订阅的kClass，与fork一一对应 [ILiveDataViewModel.fork]
+     * @param finalForkKClass 最终订阅的kClass，与fork一一对应 [fork]
      * @param success 成功的回调
      * @return 请求器[RetrofitServiceCore.RetrofitRequester]
      */
     @Suppress("UNCHECKED_CAST")
-    inline fun <reified T : Any, SERVICE, reified RESPONSE_DATA : Any> RetrofitServiceCore.RetrofitRequester<SERVICE, RESPONSE_DATA>.commitMulti(setStartAction: Boolean, finalForkKClass: KClass<T>, crossinline success: (RESPONSE_DATA?) -> Unit): RetrofitServiceCore.RetrofitRequester<SERVICE, RESPONSE_DATA> {
+    inline fun <reified T : Any, SERVICE, reified RESPONSE_DATA : Any> RetrofitServiceCore.RetrofitRequester<SERVICE, RESPONSE_DATA>.commitMulti(
+        setStartAction: Boolean,
+        finalForkKClass: KClass<T>,
+        crossinline success: (RESPONSE_DATA?) -> Unit
+    ): RetrofitServiceCore.RetrofitRequester<SERVICE, RESPONSE_DATA> {
         return this
-            .onStart { if (setStartAction) finalForkKClass.setValueForAction(EventAction.START) }
-            .onCancel { finalForkKClass.setValueForAction(EventAction.CANCEL) }
+            .onStart { if (setStartAction) getLiveData(finalForkKClass).setValueForAction(EventAction.START) }
+            .onCancel { getLiveData(finalForkKClass).setValueForAction(EventAction.CANCEL) }
             .onSuccess { result ->
                 success(result)
             }
             .onFailed { code, message ->
-                val dataWrapper = setValue(finalForkKClass, EventAction.FAILED) {
+                val dataWrapper = getLiveData(finalForkKClass).setValue(EventAction.FAILED) {
                     this.code = code
                     this.message = message
                 }

@@ -102,7 +102,7 @@ class MusicViewModel : AbsLiveDataViewModel() {
                             .commitMulti(setStartAction = false, finalForkKClass = finalForkKClass) { userState ->
                                 finalResult.userState = userState
                                 // 发送到observe订阅的onSuccess
-                                setValue(finalForkKClass, EventAction.SUCCESS) {
+                                getLiveData(finalForkKClass).setValue(EventAction.SUCCESS) {
                                     this.data = finalResult
                                 }
                             
