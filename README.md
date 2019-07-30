@@ -13,7 +13,7 @@ val musicViewModel by lazy { getLiveDataViewModel<MusicViewModel>() }
 #### 2.订阅
 ```kotlin
 // fork的目的就是生成对应的MutableLiveData对象
-musicViewModel.forkForArrayList(SearchMusic.Item::class.java)
+musicViewModel.forkForArrayList(SearchMusic.Item::class)
     .observeSimple(
         owner = this,
         onSuccess = { result ->
