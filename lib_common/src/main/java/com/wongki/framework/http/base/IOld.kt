@@ -3,7 +3,7 @@ package com.wongki.framework.http.base
 /**
  * @author  wangqi
  * date:    2019/6/6
- * email:   wangqi@feigeter.com
+ * email:   wangqi7676@163.com
  * desc:    兼容老版本定义的接口
  */
 @Deprecated("过时")

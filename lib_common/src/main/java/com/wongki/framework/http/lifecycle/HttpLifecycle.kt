@@ -6,7 +6,7 @@ import com.wongki.framework.http.base.IRequester
  * http生命周期管理接口
  * @author  wangqi
  * date:    2019/6/18
- * email:   wangqi@feigeter.com
+ * email:   wangqi7676@163.com
  * desc:    .
  */
 class HttpLifecycle {

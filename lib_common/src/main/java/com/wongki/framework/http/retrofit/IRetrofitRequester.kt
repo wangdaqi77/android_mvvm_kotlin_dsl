@@ -9,7 +9,7 @@ import io.reactivex.ObservableTransformer
 /**
  * @author  wangqi
  * date:    2019/6/20
- * email:   wangqi@feigeter.com
+ * email:   wangqi7676@163.com
  * desc:    请求器
  */
 abstract class IRetrofitRequester<API, RESPONSE_DATA> : IRequester {

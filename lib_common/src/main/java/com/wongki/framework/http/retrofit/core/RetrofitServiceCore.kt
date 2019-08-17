@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit
 /**
  * @author  wangqi
  * date:    2019/6/6
- * email:   wangqi@feigeter.com
+ * email:   wangqi7676@163.com
  * desc:    retrofit网络请求框架核心类
  *
  */

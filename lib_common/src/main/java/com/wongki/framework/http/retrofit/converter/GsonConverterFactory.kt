@@ -11,7 +11,7 @@ import java.lang.reflect.Type
 /**
  * @author  wangqi
  * date:    2019/6/12
- * email:   wangqi@feigeter.com
+ * email:   wangqi7676@163.com
  * desc:    .
  */
 class GsonConverterFactory private constructor(private val gson: Gson) : Converter.Factory() {

@@ -8,7 +8,7 @@ import javax.net.ssl.SSLSocketFactory
 /**
  * @author  wangqi
  * date:    2019/6/4
- * email:   wangqi@feigeter.com
+ * email:   wangqi7676@163.com
  * desc:
  */
 class DefaultSSL : ISSL {

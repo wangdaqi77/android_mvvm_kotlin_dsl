@@ -22,7 +22,7 @@ import java.nio.charset.Charset
 /**
  * @author  wangqi
  * date:    2019/6/12
- * email:   wangqi@feigeter.com
+ * email:   wangqi7676@163.com
  * desc:    .
  */
 class GsonResponseBodyConverter<T>(private val gson: Gson, private val adapter: TypeAdapter<T>) : Converter<ResponseBody, T> {

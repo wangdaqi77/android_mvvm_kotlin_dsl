@@ -3,7 +3,7 @@ package com.wongki.framework.http.base
 /**
  * @author  wangqi
  * date:    2019/6/20
- * email:   wangqi@feigeter.com
+ * email:   wangqi7676@163.com
  * desc:    请求器
  */
 interface IRequester {

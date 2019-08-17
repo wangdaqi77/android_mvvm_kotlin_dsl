@@ -18,7 +18,7 @@ import java.text.ParseException
 /**
  * @author  wangqi
  * date:    2019/6/17
- * email:   wangqi@feigeter.com
+ * email:   wangqi7676@163.com
  * desc:    .
  */
 abstract class HttpCommonObserver<R>(

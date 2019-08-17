@@ -7,7 +7,7 @@ import io.reactivex.schedulers.Schedulers
 /**
  * @author  wangqi
  * date:    2019/6/10
- * email:   wangqi@feigeter.com
+ * email:   wangqi7676@163.com
  * desc:    .
  */
 
