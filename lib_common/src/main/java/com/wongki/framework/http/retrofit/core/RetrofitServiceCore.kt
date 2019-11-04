@@ -31,6 +31,11 @@ import java.util.concurrent.TimeUnit
  */
 abstract class RetrofitServiceCore<API> : AbsRetrofitServiceCore<API>(), ISSL {
 
+    /**
+     * 创建新的网络请求器
+     * @param preRequest 请求服务器的api接口定义
+     * @param init 初始化网络请求器
+     */
     fun <RESPONSE_DATA> api(preRequest:API.()->Observable<CommonResponse<RESPONSE_DATA>>, init: RequesterBuilder<RESPONSE_DATA>.()-> RetrofitRequester<RESPONSE_DATA>):RetrofitRequester<RESPONSE_DATA>{
         return RequesterBuilder<RESPONSE_DATA>().let{
             it.call(preRequest)

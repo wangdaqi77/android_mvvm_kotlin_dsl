@@ -1,8 +1,9 @@
 package com.wongki.demo.vm
 
-import com.wongki.demo.http.musicService
+import com.wongki.demo.model.remote.musicService
 import com.wongki.demo.model.bean.SearchMusic
 import com.wongki.framework.mvvm.AbsLiveDataViewModel
+import com.wongki.framework.mvvm.LiveDataViewModelDslMarker
 
 /**
  * @author  wangqi
@@ -11,6 +12,7 @@ import com.wongki.framework.mvvm.AbsLiveDataViewModel
  * desc:    .
  */
 
+@LiveDataViewModelDslMarker
 class MusicViewModel : AbsLiveDataViewModel() {
 
     fun searchMusic(name: String) {
@@ -21,8 +23,6 @@ class MusicViewModel : AbsLiveDataViewModel() {
 
                 call { searchMusic(name = name) }
 
-                lifecycleObserver { this@MusicViewModel }
-
                 observeForArrayList{
                     // 成功时,如果你需要修改数据...
                 }
@@ -30,18 +30,18 @@ class MusicViewModel : AbsLiveDataViewModel() {
 
         }
 
-        musicService {
 
-            api({ searchMusic(name = name)}) {
-
-                lifecycleObserver { this@MusicViewModel }
-
-                observeForArrayList{
-                    // 成功时,如果你需要修改数据...
-                }
-            }
-
-        }
+//
+//        musicService {
+//
+//            api({ searchMusic(name = name)}) {
+//
+//                observeForArrayList{
+//                    // 成功时,如果你需要修改数据...
+//                }
+//            }
+//
+//        }
 
     }
 }

@@ -16,7 +16,10 @@ import kotlin.reflect.KClass
  * email:   wangqi7676@163.com
  * desc:    .
  */
+@DslMarker
+annotation class LiveDataViewModelDslMarker
 
+@LiveDataViewModelDslMarker
 abstract class AbsLiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveDataViewModel {
 
     override val mSystemLiveData: HashMap<String, WrapLiveData<*>?> = HashMap()
@@ -26,29 +29,31 @@ abstract class AbsLiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveData
         "${type.name}<${clazz.java.name}>"
 
     /**
-     * 生成子live data
+     * 生成对应的LiveData
      */
     @Suppress("UNCHECKED_CAST")
-    inline fun <reified T : Any> fork(clazz: KClass<T>): WrapLiveData<T> {
+    inline fun <reified T : Any> attach(init: WrapLiveData<T>.() -> Unit): WrapLiveData<T> {
+
+        val clazz = T::class
         val key = getKey(DataType.Normal, clazz)
         if (!mSystemLiveData.containsKey(key)) {
             mSystemLiveData[key] = WrapLiveData<T>() as WrapLiveData<*>
         }
-        return mSystemLiveData[key] as WrapLiveData<T>
+        return (mSystemLiveData[key] as WrapLiveData<T>).apply(init)
     }
 
     /**
-     * 生成子live data
+     * 生成对应的LiveData
      */
     @Suppress("UNCHECKED_CAST")
-    inline fun <reified T : Any> forkForArrayList(clazz: KClass<T>): WrapLiveData<ArrayList<T>> {
+    inline fun <reified T : Any> attachArraylist(init: WrapLiveData<ArrayList<T>>.() -> Unit): WrapLiveData<ArrayList<T>> {
+        val clazz = T::class
         val key = getKey(DataType.ArrayList, clazz)
         if (!mSystemLiveData.containsKey(key)) {
             mSystemLiveData[key] = WrapLiveData<ArrayList<T>>() as WrapLiveData<*>
         }
-        return mSystemLiveData[key] as WrapLiveData<ArrayList<T>>
+        return (mSystemLiveData[key] as WrapLiveData<ArrayList<T>>).apply(init)
     }
-
 
     /**
      * 获取子live data
@@ -57,7 +62,7 @@ abstract class AbsLiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveData
     inline fun <reified T : Any> getLiveData(clazz: KClass<T>): WrapLiveData<T> {
         val key = getKey(DataType.Normal, clazz)
         if (!mSystemLiveData.containsKey(key)) {
-            throw RuntimeException("call this before please call fork")
+            throw RuntimeException("call this before please call attach")
         }
         return mSystemLiveData[key] as WrapLiveData<T>
     }
@@ -69,7 +74,7 @@ abstract class AbsLiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveData
     inline fun <reified T : Any> getLiveDataForArrayList(clazz: KClass<T>): WrapLiveData<ArrayList<T>> {
         val key = getKey(DataType.ArrayList, clazz)
         if (!mSystemLiveData.containsKey(key)) {
-            throw RuntimeException("call this before please call fork")
+            throw RuntimeException("call this before please call attach")
         }
         return mSystemLiveData[key] as WrapLiveData<ArrayList<T>>
     }
@@ -93,7 +98,7 @@ abstract class AbsLiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveData
             }
 
             onSuccess {
-                var result = this
+                val result = this
                 success(result)
                 // 通知成功
 
@@ -113,6 +118,8 @@ abstract class AbsLiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveData
 
                 return@onFailed dataWrapper.errorProcessed
             }
+        }.apply {
+            lifecycleObserver { this@AbsLiveDataViewModel }
         }
 
     }
@@ -123,6 +130,7 @@ abstract class AbsLiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveData
     ): RetrofitServiceCore<API>.RetrofitRequester<ArrayList<T>> {
 
         return observer {
+
 
             onStart {
                 // 通知开始
@@ -157,6 +165,8 @@ abstract class AbsLiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveData
                 return@onFailed dataWrapper.errorProcessed
             }
 
+        }.apply {
+            lifecycleObserver { this@AbsLiveDataViewModel }
         }
 
     }
@@ -164,26 +174,26 @@ abstract class AbsLiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveData
     /**
      * 用于一次点击，多次网络请求
      * @param setStartAction 是否发送Start事件  只有多次网络请求的第一次是需要发送Start事件
-     * @param finalForkKClass 最终订阅的kClass，与fork一一对应 [fork]
+     * @param finalAttachedKClass 最终订阅的kClass，与attach一一对应 [attach]
      * @param success 成功的回调
      * @return 请求器[RetrofitServiceCore.RetrofitRequester]
      */
     @Suppress("UNCHECKED_CAST")
     inline fun <reified T : Any, SERVICE, reified RESPONSE_DATA : Any> RetrofitServiceCore<SERVICE>.RequesterBuilder<RESPONSE_DATA>.observeMulti(
         setStartAction: Boolean,
-        finalForkKClass: KClass<T>,
+        finalAttachedKClass: KClass<T>,
         crossinline success: (RESPONSE_DATA?) -> Unit
     ): RetrofitServiceCore<SERVICE>.RetrofitRequester<RESPONSE_DATA> {
         return observer {
 
             onStart {
                 if (setStartAction) {
-                    getLiveData(finalForkKClass).setValueForAction(EventAction.START)
+                    getLiveData(finalAttachedKClass).setValueForAction(EventAction.START)
                 }
             }
 
             onCancel {
-                getLiveData(finalForkKClass).setValueForAction(EventAction.CANCEL)
+                getLiveData(finalAttachedKClass).setValueForAction(EventAction.CANCEL)
             }
 
             onSuccess {
@@ -191,13 +201,15 @@ abstract class AbsLiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveData
             }
 
             onFailed { code, message ->
-                val dataWrapper = getLiveData(finalForkKClass).setValue(EventAction.FAILED) {
+                val dataWrapper = getLiveData(finalAttachedKClass).setValue(EventAction.FAILED) {
                     this.code = code
                     this.message = message
                 }
                 return@onFailed dataWrapper.errorProcessed
             }
 
+        }.apply {
+            lifecycleObserver { this@AbsLiveDataViewModel }
         }
     }
 

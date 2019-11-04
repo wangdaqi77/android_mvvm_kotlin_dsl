@@ -2,7 +2,6 @@ package com.wongki.framework.extensions
 
 import android.content.Context
 import android.widget.Toast
-import com.wongki.framework.base.BaseApplication
 
 /**
  * @author  wangqi
@@ -12,6 +11,6 @@ import com.wongki.framework.base.BaseApplication
  */
 
 
-fun Any.toast(context: Context = BaseApplication.getApp(), duration: Int = Toast.LENGTH_LONG) {
+fun Any.toast(context: Context = getApp(), duration: Int = Toast.LENGTH_LONG) {
     Toast.makeText(context, this.toString(), duration).show()
 }

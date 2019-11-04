@@ -46,16 +46,18 @@ class GsonResponseBodyConverter<T>(private val gson: Gson, private val adapter: 
 
 
             } catch (e: Exception) {
-                /**
-                 * 第二次解析
-                 */
-                val jsonType = object : TypeToken<CommonResponse<*>>() {
-                }.type
-                try {
-                    commonResponse = this.gson.fromJson<T>(response, jsonType) as CommonResponse<*>
-                } catch (e: JsonSyntaxException) {
-                    Log.d(TAG, "强制解析失败, Exception -> ${e.message}, response -> $response")
-                }
+                Log.d(TAG, "强制解析失败, Exception -> ${e.message}, response -> $response")
+
+//                /**
+//                 * 第二次解析
+//                 */
+//                val jsonType = object : TypeToken<CommonResponse<*>>() {
+//                }.type
+//                try {
+//                    commonResponse = this.gson.fromJson<T>(response, jsonType) as CommonResponse<*>
+//                } catch (e: JsonSyntaxException) {
+//                    Log.d(TAG, "强制解析失败, Exception -> ${e.message}, response -> $response")
+//                }
             }
         } catch (e: Exception) {
             Log.d(TAG,  "response convert失败, Exception -> ${e.message}" )

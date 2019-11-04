@@ -9,4 +9,4 @@ import com.wongki.framework.base.BaseApplication
  * desc:    .
  */
 
-fun Any.getApp() = BaseApplication.instance
+fun getApp() = BaseApplication.instance

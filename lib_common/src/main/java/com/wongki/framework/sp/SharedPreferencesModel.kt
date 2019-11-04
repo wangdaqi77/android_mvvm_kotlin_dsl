@@ -1,4 +1,4 @@
-package com.feigeter.common.sp
+package com.wongki.framework.sp
 
 import android.content.Context
 import android.content.SharedPreferences

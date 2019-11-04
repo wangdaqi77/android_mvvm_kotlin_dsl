@@ -1,4 +1,4 @@
-package com.wongki.demo.http
+package com.wongki.demo.model.remote
 
 import com.wongki.framework.http.retrofit.core.RetrofitServiceDslMarker
 

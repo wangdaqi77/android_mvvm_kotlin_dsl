@@ -12,14 +12,21 @@ val musicViewModel by lazy { getLiveDataViewModel<MusicViewModel>() }
 
 #### 2.订阅
 ```kotlin
-// fork的目的就是生成对应的MutableLiveData对象
-musicViewModel.forkForArrayList(SearchMusic.Item::class)
-    .observeSimple(
-        owner = this,
-        onSuccess = { result ->
-            //成功
+// attach的目的是在musicViewModel生成对应的LiveData对象，observe的目的是订阅
+        musicViewModel {
+
+            attachArraylist<SearchMusic.Item> {
+
+                observe {
+                    owner = this@MainActivity
+                    onSuccess {
+                        // show...
+                    }
+
+                }
+            }
+
         }
-     )
 ```
 
 #### 3.view点击时获取数据
@@ -42,75 +49,19 @@ class MusicViewModel : AbsLiveDataViewModel() {
 
     fun searchMusic(name: String) {
 
-        //1. 启动远端仓库
-        launchRemoteRepo(MusicServiceCore) {
-            // 2. 远端仓库的api请求
-            searchMusic(name)
-            //3. 提交远端仓库的api请求，当请求[开始、取消、成功、失败]会通知到View层订阅的地方
-        }.commitForArrayList()
+        musicService {
+
+            api<ArrayList<SearchMusic.Item>> {
+
+                call { searchMusic(name = name) }
+
+                observeForArrayList{
+                    // 成功时,如果你需要修改数据...
+                }
+            }
+
+        }
         
     }
 }
-```
-
-
-## 其他例子
-### 一次操作多次网络请求
-#### 1.fork订阅
-```kotlin
-        /**
-         * 申请借款
-         */
-        mLoanViewModel.fork(LoanApplyStart.Result::class)
-                .observe(
-                        owner = this,
-                        onStart = {
-                            showLoadingDialog(seqNo = 1)
-                        },
-                        onCancel = {
-                            dialogDismiss(seqNo = 1)
-                        },
-                        onFailed = { _, _ ->
-                            dialogDismiss(seqNo = 1)
-                            false
-                        },
-                        onSuccess = { result ->
-                            dialogDismiss(seqNo = 1)
-                            result?.userState?.let { userState ->
-                                loanApplyByUserState(userState)
-                            }
-
-                        }
-
-                )
-```
-#### 2.viewModel中的嵌套请求
-```kotlin
-    /**
-     * 申请借款
-     */
-    override fun loanApplyStart(days: Int) {
-        val finalForkKClass = LoanApplyStart.Result::class // 和fork时的class一致
-        val finalResult = LoanApplyStart.Result()
-
-        // 1. 申请借款前置条件
-        launchRemoteRepo(AppServiceCore) { loanApplyBefore(days) }
-                .observeMulti(setStartAction = true, finalForkKClass = finalForkKClass) { result ->
-
-                    // 2. 查询用户状态
-                    launchRemoteRepo(AppServiceCore) { queryUserState() }
-                            .observeMulti(setStartAction = false, finalForkKClass = finalForkKClass) { userState ->
-                                finalResult.userState = userState
-                                // 发送到observe订阅的onSuccess
-                                getLiveData(finalForkKClass).setValue(EventAction.SUCCESS) {
-                                    this.data = finalResult
-                                }
-                            
-                            }
-
-
-
-                }
-    }
-
 ```

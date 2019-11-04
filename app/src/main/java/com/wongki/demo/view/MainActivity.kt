@@ -9,6 +9,7 @@ import com.wongki.framework.base.BaseActivity
 import com.wongki.framework.extensions.dialogDismiss
 import com.wongki.framework.extensions.showLoadingDialog
 import com.wongki.framework.extensions.toast
+import com.wongki.framework.mvvm.LiveDataViewModelDslMarker
 import com.wongki.framework.mvvm.getLiveDataViewModel
 
 import kotlinx.android.synthetic.main.activity_main.*
@@ -18,6 +19,8 @@ class MainActivity : BaseActivity() {
 
     //1.获取ViewModel对象
     private val musicViewModel by lazy { getLiveDataViewModel<MusicViewModel>() }
+    @LiveDataViewModelDslMarker
+    private fun musicViewModel(action:MusicViewModel.()->Unit){musicViewModel.action()}
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,41 +32,55 @@ class MainActivity : BaseActivity() {
 
 
     private fun initViewModel() {
-        musicViewModel.fork(String::class)
-        // 2.fork的目的就是生成对应的MutableLiveData对象
-        musicViewModel
-            .forkForArrayList(SearchMusic.Item::class)
-            .observe(// 3.订阅
-                owner = this,
-                onStart = {
-                    /*开始*/
-                    showLoadingDialog(seqNo = 1)
-                },
-                onCancel = {
-                    /*取消，当activity销毁时，准确的说是musicViewModel被onCleared()*/
-                    dialogDismiss(seqNo = 1)
-                },
-                onFailed = { _, message ->
-                    // 失败
-                    dialogDismiss(seqNo = 1)
-                    message?.toast()
-                    true // 返回true代表上层处理，返回false代表框架处理，目前框架层会弹Toast
-                }
-                ,
-                onSuccess = { result ->
-                    //成功
-                    dialogDismiss(seqNo = 1)
-                    result?.let { list ->
-                        if (list.isNotEmpty()) {
-                            val item = list.first()
-                            Snackbar.make(fab, "《${item.title}》 - ${item.author}", Snackbar.LENGTH_LONG)
-                                .setAction("Action", null).show()
-                        }
+        // 2.attach的目的就是生成对应的MutableLiveData对象
+        musicViewModel {
 
+            attachArraylist<SearchMusic.Item> {
+
+                observe {
+                    owner = this@MainActivity
+
+                    onStart {
+                        /*开始*/
+                        showLoadingDialog(seqNo = 1)
                     }
-                }
-            )
 
+                    onCancel {
+                        /*取消，当activity销毁时，准确的说是musicViewModel被onCleared()*/
+                        dialogDismiss(seqNo = 1)
+                    }
+
+                    onSuccess {
+                        val result = this
+                        //成功
+                        dialogDismiss(seqNo = 1)
+                        result?.let { list ->
+                            if (list.isNotEmpty()) {
+                                val item = list.first()
+                                Snackbar.make(
+                                    fab,
+                                    "《${item.title}》 - ${item.author}",
+                                    Snackbar.LENGTH_LONG
+                                )
+                                    .setAction("Action", null).show()
+                            }
+
+                        }
+                    }
+
+                    onFailed { _, message ->
+                        // 失败
+                        dialogDismiss(seqNo = 1)
+                        message.toast()
+                        true // 返回true代表上层处理，返回false代表框架处理，目前框架层会弹Toast
+                    }
+
+                }
+            }
+
+
+
+        }
 
     }
 
@@ -72,7 +89,8 @@ class MainActivity : BaseActivity() {
             val name = et_primary_key.text.toString()
 
             checkEmpty(name) {
-                Snackbar.make(view, "请输入关键字~", Snackbar.LENGTH_LONG).setAction("Action", null).show()
+                Snackbar.make(view, "请输入关键字~", Snackbar.LENGTH_LONG).setAction("Action", null)
+                    .show()
                 return@setOnClickListener
             }
 

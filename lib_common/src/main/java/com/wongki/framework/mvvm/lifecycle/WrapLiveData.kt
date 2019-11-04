@@ -5,6 +5,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import com.wongki.framework.mvvm.AbsLiveDataViewModel
+import com.wongki.framework.mvvm.LiveDataViewModelDslMarker
 import com.wongki.framework.mvvm.action.EventAction
 
 /**
@@ -13,6 +14,7 @@ import com.wongki.framework.mvvm.action.EventAction
  * email:   wangqi7676@163.com
  * desc:    .
  */
+@LiveDataViewModelDslMarker
 class WrapLiveData<T> : MutableLiveData<DataWrapper<T>>() {
 
 
@@ -75,60 +77,53 @@ class WrapLiveData<T> : MutableLiveData<DataWrapper<T>>() {
     override fun observeForever(observer: Observer<in DataWrapper<T>>) {
     }
 
-    /**
-     * 订阅，接收数据变化的事件通知
-     * 通知数据变化->[AbsLiveDataViewModel.observe]
-     */
-    fun observeSimple(
-        owner: LifecycleOwner,
-        onSuccess: (T?) -> Unit
-    ) {
+    @LiveDataViewModelDslMarker
+    inner class ObserveBuilder {
+        lateinit var owner: LifecycleOwner
+        internal var onStart: (() -> Unit)? = null
+        internal var onCancel: (() -> Unit)? = null
+        internal var onFailed: ((Int, String) -> Boolean)? = null
+        internal var onSuccess: (T?.() -> Unit)? = null
 
-        super.observe(owner, Observer<DataWrapper<T>> { result ->
-            if (result != null) {
-                val action = result.action
-                when (action) {
-                    EventAction.SUCCESS -> {
-                        onSuccess(result.data)
-                    }
-                    else -> {
-                        Log.w("LiveDataViewModel", "未处理的Action：${action.name}")
-                    }
-                }
-            }
+        fun onStart(onStart: () -> Unit) {
+            this.onStart = onStart
+        }
+        fun onCancel(onCancel: () -> Unit) {
+            this.onCancel = onCancel
+        }
+        fun onFailed(onFailed: ((Int, String) -> Boolean)) {
+            this.onFailed = onFailed
+        }
+        fun onSuccess(onSuccess: T?.() -> Unit) {
+            this.onSuccess = onSuccess
+        }
 
-        })
     }
-
 
     /**
      * 订阅，接收数据变化的事件通知
      * 通知数据变化->[AbsLiveDataViewModel.observe]
      * @param onFailed 返回true代表上层处理，返回false代表框架处理，目前框架层会弹Toast
      */
-    fun observe(
-        owner: LifecycleOwner,
-        onStart: () -> Unit,
-        onCancel: () -> Unit,
-        onFailed: (Int, String?) -> Boolean,
-        onSuccess: (T?) -> Unit
-    ) {
-        super.observe(owner, Observer<DataWrapper<T>> { result ->
+    fun observe(init:ObserveBuilder.()->Unit) {
+        val observeBuilder = ObserveBuilder()
+        observeBuilder.init()
+        super.observe(observeBuilder.owner, Observer<DataWrapper<T>> { result ->
             if (result != null) {
                 val action = result.action
                 when (action) {
                     EventAction.START -> {
-                        onStart()
+                        observeBuilder.onStart?.invoke()
                     }
                     EventAction.CANCEL -> {
-                        onCancel()
+                        observeBuilder.onCancel?.invoke()
                     }
                     EventAction.SUCCESS -> {
-                        onSuccess(result.data)
+                        observeBuilder.onSuccess?.invoke(result.data)
                     }
                     EventAction.FAILED -> {
-                        val errorProcessed = onFailed(result.code, result.message)
-                        result.errorProcessed = errorProcessed
+                        val errorProcessed = observeBuilder.onFailed?.invoke(result.code, result.message)
+                        result.errorProcessed = errorProcessed ?:false
                     }
                     else -> {
                         Log.e("LiveDataViewModel", "未处理的Action：${action.name}")

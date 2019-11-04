@@ -6,9 +6,13 @@ package com.wongki.framework.model.domain
  * email:   wangqi7676@163.com
  * desc:    .
  */
-data class CommonResponse<T>(
-        var code: Int = -1,
-        var count: Int = -1,
-        var message: String?,
-        var result: T?
-)
+class CommonResponse<T> {
+    var code: Int = -1
+    var message: String? = null
+    var result: T? = null
+    override fun toString(): String {
+        return "code = $code" +
+                "，message = $message" +
+                "，result = $result"
+    }
+}
