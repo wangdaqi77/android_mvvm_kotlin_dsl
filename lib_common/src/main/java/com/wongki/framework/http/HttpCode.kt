@@ -1,22 +1,8 @@
 package com.wongki.framework.http
 
-/**
- * @author  wangqi
- * date:    2019/6/17
- * email:   wangqi7676@163.com
- * desc:    .
- */
 object HttpCode {
     //成功状态码
     const val SUCCESSFUL = 200
-    const val JSON_REQUEST_SUCCESSFUL = 0
-    //更新APP
-    const val UPDATE = 999
-    const val STOP_SERVER = 888
-    const val TOKEN_INVIALD = 401
-    //用户资质不符，去贷超标识
-    const val GOTODAICHAO = 406
-
 
     // 未知失败
     const val UNKNOWN_FAILED = -100

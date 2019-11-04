@@ -77,7 +77,7 @@ class WrapLiveData<T> : MutableLiveData<DataWrapper<T>>() {
 
     /**
      * 订阅，接收数据变化的事件通知
-     * 通知数据变化->[AbsLiveDataViewModel.commit]
+     * 通知数据变化->[AbsLiveDataViewModel.observe]
      */
     fun observeSimple(
         owner: LifecycleOwner,
@@ -103,7 +103,7 @@ class WrapLiveData<T> : MutableLiveData<DataWrapper<T>>() {
 
     /**
      * 订阅，接收数据变化的事件通知
-     * 通知数据变化->[AbsLiveDataViewModel.commit]
+     * 通知数据变化->[AbsLiveDataViewModel.observe]
      * @param onFailed 返回true代表上层处理，返回false代表框架处理，目前框架层会弹Toast
      */
     fun observe(

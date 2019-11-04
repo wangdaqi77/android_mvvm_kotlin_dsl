@@ -4,7 +4,7 @@ package com.wongki.framework.http.lifecycle
  * @author  wangqi
  * date:    2019/6/17
  * email:   wangqi7676@163.com
- * desc:    Http生命周期观察者
+ * desc:    生命周期观察者
  */
 interface IHttpLifecycleObserver{
     /**

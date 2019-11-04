@@ -95,11 +95,11 @@ class MusicViewModel : AbsLiveDataViewModel() {
 
         // 1. 申请借款前置条件
         launchRemoteRepo(AppServiceCore) { loanApplyBefore(days) }
-                .commitMulti(setStartAction = true, finalForkKClass = finalForkKClass) { result ->
+                .observeMulti(setStartAction = true, finalForkKClass = finalForkKClass) { result ->
 
                     // 2. 查询用户状态
                     launchRemoteRepo(AppServiceCore) { queryUserState() }
-                            .commitMulti(setStartAction = false, finalForkKClass = finalForkKClass) { userState ->
+                            .observeMulti(setStartAction = false, finalForkKClass = finalForkKClass) { userState ->
                                 finalResult.userState = userState
                                 // 发送到observe订阅的onSuccess
                                 getLiveData(finalForkKClass).setValue(EventAction.SUCCESS) {

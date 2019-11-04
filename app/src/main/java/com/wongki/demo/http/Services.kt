@@ -1,9 +1,6 @@
 package com.wongki.demo.http
 
-import com.wongki.demo.model.remote.api.MusicApi
-import com.wongki.framework.http.retrofit.lifecycle.IHttpRetrofitLifecycleObserver
-import com.wongki.framework.model.domain.CommonResponse
-import io.reactivex.Observable
+import com.wongki.framework.http.retrofit.core.RetrofitServiceDslMarker
 
 /**
  * @author  wangqi
@@ -12,7 +9,5 @@ import io.reactivex.Observable
  * desc:    .
  */
 
-fun <R> Any.newMusicRequester(
-    lifecycleObserver: IHttpRetrofitLifecycleObserver? = null,
-    preRequest: (MusicApi) -> Observable<CommonResponse<R>>
-) = MusicServiceCore.newRequester(lifecycleObserver, preRequest)
+@RetrofitServiceDslMarker
+fun musicService(init:MusicServiceCore.()->Unit){MusicServiceCore.init()}

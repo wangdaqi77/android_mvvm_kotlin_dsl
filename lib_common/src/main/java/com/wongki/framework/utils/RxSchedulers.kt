@@ -1,15 +1,8 @@
-package com.wongki.framework.rx
+package com.wongki.framework.utils
 
 import io.reactivex.ObservableTransformer
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
-
-/**
- * @author  wangqi
- * date:    2019/6/10
- * email:   wangqi7676@163.com
- * desc:    .
- */
 
 
 object RxSchedulers {

@@ -1,13 +1,16 @@
 package com.wongki.framework.http.retrofit.observer
 
 
-import com.wongki.framework.base.BaseApplication
+import android.util.Log
 import com.wongki.framework.extensions.toast
 import com.wongki.framework.http.exception.ApiException
 import com.wongki.framework.http.HttpCode
+import com.wongki.framework.http.interceptor.IErrorInterceptor
 import com.wongki.framework.http.exception.ParseResponseException
-import com.wongki.framework.http.retrofit.ErrorInterceptor
+import com.wongki.framework.http.interceptor.ErrorInterceptorNode
 import io.reactivex.Observer
+import com.wongki.framework.http.interceptor.GlobalHttpErrorInterceptor
+import org.json.JSONException
 import retrofit2.HttpException
 import java.io.IOException
 import java.net.ConnectException
@@ -15,17 +18,14 @@ import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import java.text.ParseException
 
-/**
- * @author  wangqi
- * date:    2019/6/17
- * email:   wangqi7676@163.com
- * desc:    .
- */
-abstract class HttpCommonObserver<R>(
-        private val errorInterceptor: ErrorInterceptor? = null,
-        private val onFailed: (Int, String) -> Boolean,
-        private val onSuccess: (R) -> Unit) : Observer<R> {
 
+abstract class HttpCommonObserver<R>(
+    private val errorInterceptor: ErrorInterceptorNode? = null,
+    private val onFailed: (Int, String) -> Boolean,
+    private val onSuccess: (R) -> Unit
+) : Observer<R> {
+
+    private val TAG = "HttpCommonObserver"
     override fun onNext(t: R) {
         onSuccess(t)
     }
@@ -36,28 +36,40 @@ abstract class HttpCommonObserver<R>(
         val msg: String = wrapError.second
 
         /**
-         * 上层是否已处理该错误码
+         * 是否已处理该错误
          */
-        var isIntercept = false
+        var isProcessed = false
+        /**
+         *  处理错误拦截
+         * [IErrorInterceptor.onInterceptError]
+         */
         var errorInterceptor = this.errorInterceptor
-        while (errorInterceptor != null && !isIntercept) {
-            isIntercept = errorInterceptor.onInterceptErrorCode(code, msg)
+        while (errorInterceptor != null && !isProcessed) {
+            isProcessed = errorInterceptor.onInterceptError(code, msg)
+            Log.e(TAG,"${errorInterceptor.tag} code：$code, message：$msg 拦截状态：$isProcessed")
             errorInterceptor = errorInterceptor.next
         }
 
-        if (!isIntercept) {
-            when (code) {
-                HttpCode.STOP_SERVER, HttpCode.TOKEN_INVIALD -> {
-                    // EventBus.getDefault().post(MessageEvent(MessageEvent.APP_LOGOUT, "", null))
-                }
-            }
+        if (!isProcessed) {
+            // 交给全局处理
+            isProcessed = GlobalHttpErrorInterceptor.onInterceptError(code, msg)
+            Log.e(TAG,"${GlobalHttpErrorInterceptor.tag} code：$code, message：$msg 拦截状态：$isProcessed")
         }
 
-        // 业务层是否处理
-        val handle = onFailed(code, msg)
-        if (!handle) {
-            "$msg ($code)".toast(BaseApplication.instance)
+        // 没有拦截
+        if (!isProcessed) {
+            // 业务层处理
+            isProcessed = onFailed(code, msg)
+            Log.e(TAG,"api请求错误处理， code：$code, message：$msg 处理状态：$isProcessed")
         }
+
+        if (!isProcessed) {
+            // 娄底处理
+            "$msg ($code)".toast()
+            Log.e(TAG,"api请求错误娄底处理， code：$code, message：$msg 处理状态：$isProcessed")
+
+        }
+
     }
 
     /**
@@ -95,6 +107,7 @@ abstract class HttpCommonObserver<R>(
                 msg = message
             }
             // 解析异常
+            is JSONException,
             is ParseResponseException,
             is ParseException
             -> {

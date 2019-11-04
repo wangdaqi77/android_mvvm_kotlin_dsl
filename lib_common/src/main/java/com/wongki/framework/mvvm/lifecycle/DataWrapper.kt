@@ -12,7 +12,7 @@ import com.wongki.framework.mvvm.AbsLiveDataViewModel
  */
 open class DataWrapper<T> {
     /**
-     * 当Action发生改变时postValue[AbsLiveDataViewModel.commit]
+     * 当Action发生改变时postValue[AbsLiveDataViewModel.observe]
      */
     var action: EventAction = EventAction.DEFAULT
     var data: T? = null // 真正的数据

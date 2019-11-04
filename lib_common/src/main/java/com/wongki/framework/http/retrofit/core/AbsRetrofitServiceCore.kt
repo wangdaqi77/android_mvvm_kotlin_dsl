@@ -5,7 +5,7 @@ import com.wongki.framework.http.base.IServiceCore
 import com.wongki.framework.http.lifecycle.HttpLifecycle
 import com.wongki.framework.http.lifecycle.IHttpLifecycleFactory
 import com.wongki.framework.http.lifecycle.IHttpLifecycleOwner
-import com.wongki.framework.http.retrofit.ErrorInterceptor
+import com.wongki.framework.http.interceptor.ErrorInterceptorNode
 import com.wongki.framework.http.retrofit.IRetrofit
 import com.wongki.framework.http.retrofit.lifecycle.HttpRetrofitLifecycleHelper
 import io.reactivex.Observable
@@ -22,21 +22,25 @@ import java.lang.reflect.ParameterizedType
  * email:   wangqi7676@163.com
  *
  */
+
+@DslMarker
+annotation class RetrofitServiceDslMarker
+
+@RetrofitServiceDslMarker
 abstract class AbsRetrofitServiceCore<API> : IServiceCore, IRetrofit<API>, IHttpLifecycleOwner {
 
     override val mConnectTimeOut: Long = 15_000
     override val mReadTimeOut: Long = 15_000
     override val mWriteTimeOut: Long = 15_000
     private val mRetrofit by lazy { generateRetrofit() }
-    protected open var errorInterceptor: ErrorInterceptor? = null
+    protected open var selfServiceApiErrorInterceptor: ErrorInterceptorNode? = null
 
     /**
      * 默认的服务对象
      */
-    protected val mDefaultApi: API by lazy {
+    protected val mDefaultApiProxy: API by lazy {
         val paramType = this.javaClass.genericSuperclass as ParameterizedType
         val serviceClazz = paramType.actualTypeArguments[0] as Class<API>
-        mRetrofit.newBuilder().build()
         mRetrofit.create(serviceClazz)
     }
 
@@ -52,18 +56,14 @@ abstract class AbsRetrofitServiceCore<API> : IServiceCore, IRetrofit<API>, IHttp
      * @param request 默认的服务对象中具体的api请求方法
      * @param composer 线程调度
      */
-    protected fun <RESPONSE, RESPONSE_MAP> request(
-        request: (API) -> Observable<RESPONSE>,
-        composer: ObservableTransformer<RESPONSE, RESPONSE_MAP>
-    ): Observable<RESPONSE_MAP> {
-        return request(mDefaultApi).compose(composer)
+    protected fun <RESPONSE, RESPONSE_MAP> request(request: API.() -> Observable<RESPONSE>, composer: ObservableTransformer<RESPONSE, RESPONSE_MAP>): Observable<RESPONSE_MAP> {
+        return mDefaultApiProxy.request().compose(composer)
     }
 
     /**
      * 创建网络请求生命周期管理器
      */
     private object HttpRetrofitLifecycleFactory : IHttpLifecycleFactory {
-
         override fun createLifecycle(): HttpLifecycle {
             val lifecycle = HttpLifecycle()
             // 将生命周期管理器添加到缓存中
@@ -76,7 +76,6 @@ abstract class AbsRetrofitServiceCore<API> : IServiceCore, IRetrofit<API>, IHttp
      * Log拦截器
      */
     protected object CommonLogInterceptor : HttpLoggingInterceptor.Logger {
-
         override fun log(message: String) {
             Log.i(javaClass.simpleName, message)
         }
@@ -94,7 +93,6 @@ abstract class AbsRetrofitServiceCore<API> : IServiceCore, IRetrofit<API>, IHttp
      * 生命周期管理器
      */
     private var mLifecycle: HttpLifecycle? = null
-
 
     /**
      * 获取生命周期管理器

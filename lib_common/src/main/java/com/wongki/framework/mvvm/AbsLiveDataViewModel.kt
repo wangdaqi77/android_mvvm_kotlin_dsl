@@ -22,7 +22,8 @@ abstract class AbsLiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveData
     override val mSystemLiveData: HashMap<String, WrapLiveData<*>?> = HashMap()
 
 
-    inline fun <reified T : Any> getKey(type: DataType, clazz: KClass<T>) = "${type.name}<${clazz.java.name}>"
+    inline fun <reified T : Any> getKey(type: DataType, clazz: KClass<T>) =
+        "${type.name}<${clazz.java.name}>"
 
     /**
      * 生成子live data
@@ -74,21 +75,25 @@ abstract class AbsLiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveData
     }
 
     @Suppress("UNCHECKED_CAST")
-    inline fun <API, reified RESPONSE_DATA : Any> RetrofitServiceCore.RetrofitRequester<API, RESPONSE_DATA>.commit(
+    inline fun <API, reified RESPONSE_DATA : Any> RetrofitServiceCore<API>.RequesterBuilder<RESPONSE_DATA>.observe(
         crossinline success: (RESPONSE_DATA?) -> Unit = {}
-    ): RetrofitServiceCore.RetrofitRequester<API, RESPONSE_DATA> {
+    ): RetrofitServiceCore<API>.RetrofitRequester<RESPONSE_DATA> {
 
-        return this
-            .onStart {
+
+        return observer {
+
+            onStart {
                 // 通知开始
                 getLiveData(RESPONSE_DATA::class).setValueForAction(EventAction.START)
             }
-            .onCancel {
+
+            onCancel {
                 // 通知取消
                 getLiveData(RESPONSE_DATA::class).setValueForAction(EventAction.CANCEL)
             }
 
-            .onSuccess { result ->
+            onSuccess {
+                var result = this
                 success(result)
                 // 通知成功
 
@@ -98,7 +103,8 @@ abstract class AbsLiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveData
                     }
                 }
             }
-            .onFailed { code, message ->
+
+            onFailed { code, message ->
                 // 通知失败
                 val dataWrapper = getLiveData(RESPONSE_DATA::class).setValue(EventAction.FAILED) {
                     this.code = code
@@ -107,26 +113,30 @@ abstract class AbsLiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveData
 
                 return@onFailed dataWrapper.errorProcessed
             }
-            .request()
+        }
+
     }
 
     @Suppress("UNCHECKED_CAST")
-    inline fun <API, reified T : Any> RetrofitServiceCore.RetrofitRequester<API, ArrayList<T>>.commitForArrayList(
+    inline fun <API, reified T : Any> RetrofitServiceCore<API>.RequesterBuilder<ArrayList<T>>.observeForArrayList(
         crossinline success: (ArrayList<T>?) -> Unit = {}
-    ): RetrofitServiceCore.RetrofitRequester<API, ArrayList<T>> {
+    ): RetrofitServiceCore<API>.RetrofitRequester<ArrayList<T>> {
 
-        return this
-            .onStart {
+        return observer {
+
+            onStart {
                 // 通知开始
                 getLiveDataForArrayList(T::class).setValueForArrayListForAction<T>(EventAction.START)
             }
-            .onCancel {
+
+            onCancel {
                 // 通知取消
                 getLiveDataForArrayList(T::class).setValueForArrayListForAction<T>(EventAction.CANCEL)
             }
 
-            .onSuccess { result ->
-                success(result)
+            onSuccess {
+                val result = this
+                success(this)
                 // 通知成功
                 getLiveDataForArrayList(T::class).setValueForArrayList<T>(EventAction.SUCCESS) {
                     if (result != null) {
@@ -135,16 +145,20 @@ abstract class AbsLiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveData
                 }
 
             }
-            .onFailed { code, message ->
+
+            onFailed { code, message ->
                 // 通知失败
-                val dataWrapper = getLiveDataForArrayList(T::class).setValueForArrayList<T>(EventAction.SUCCESS) {
-                    this.code = code
-                    this.message = message
-                }
+                val dataWrapper =
+                    getLiveDataForArrayList(T::class).setValueForArrayList<T>(EventAction.SUCCESS) {
+                        this.code = code
+                        this.message = message
+                    }
 
                 return@onFailed dataWrapper.errorProcessed
             }
-            .request()
+
+        }
+
     }
 
     /**
@@ -155,24 +169,36 @@ abstract class AbsLiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveData
      * @return 请求器[RetrofitServiceCore.RetrofitRequester]
      */
     @Suppress("UNCHECKED_CAST")
-    inline fun <reified T : Any, SERVICE, reified RESPONSE_DATA : Any> RetrofitServiceCore.RetrofitRequester<SERVICE, RESPONSE_DATA>.commitMulti(
+    inline fun <reified T : Any, SERVICE, reified RESPONSE_DATA : Any> RetrofitServiceCore<SERVICE>.RequesterBuilder<RESPONSE_DATA>.observeMulti(
         setStartAction: Boolean,
         finalForkKClass: KClass<T>,
         crossinline success: (RESPONSE_DATA?) -> Unit
-    ): RetrofitServiceCore.RetrofitRequester<SERVICE, RESPONSE_DATA> {
-        return this
-            .onStart { if (setStartAction) getLiveData(finalForkKClass).setValueForAction(EventAction.START) }
-            .onCancel { getLiveData(finalForkKClass).setValueForAction(EventAction.CANCEL) }
-            .onSuccess { result ->
-                success(result)
+    ): RetrofitServiceCore<SERVICE>.RetrofitRequester<RESPONSE_DATA> {
+        return observer {
+
+            onStart {
+                if (setStartAction) {
+                    getLiveData(finalForkKClass).setValueForAction(EventAction.START)
+                }
             }
-            .onFailed { code, message ->
+
+            onCancel {
+                getLiveData(finalForkKClass).setValueForAction(EventAction.CANCEL)
+            }
+
+            onSuccess {
+                success(this)
+            }
+
+            onFailed { code, message ->
                 val dataWrapper = getLiveData(finalForkKClass).setValue(EventAction.FAILED) {
                     this.code = code
                     this.message = message
                 }
                 return@onFailed dataWrapper.errorProcessed
-            }.request()
+            }
+
+        }
     }
 
     override fun onCleared() {
