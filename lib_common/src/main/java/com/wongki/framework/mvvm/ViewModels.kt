@@ -5,6 +5,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProviders
 import com.wongki.framework.mvvm.factory.ViewModelFactory
+import com.wongki.framework.mvvm.lifecycle.wrap.AbsLiveDataWrapperViewModel
 import java.lang.IllegalArgumentException
 
 /**
@@ -16,14 +17,14 @@ import java.lang.IllegalArgumentException
 
 inline fun <reified T: ViewModel> FragmentActivity.getLiveDataViewModel(): T {
     val viewModelJavaClazz = T::class.java
-    viewModelJavaClazz.checkViewModelType(AbsLiveDataViewModel::class.java)
+    viewModelJavaClazz.checkViewModelType(AbsLiveDataWrapperViewModel::class.java)
 
     return ViewModelProviders.of(this, ViewModelFactory()).get(viewModelJavaClazz)
 }
 
 inline fun <reified T: ViewModel> Fragment.getLiveDataViewModel(): T {
     val viewModelJavaClazz = T::class.java
-    viewModelJavaClazz.checkViewModelType(AbsLiveDataViewModel::class.java)
+    viewModelJavaClazz.checkViewModelType(AbsLiveDataWrapperViewModel::class.java)
 
     return ViewModelProviders.of(this, ViewModelFactory()).get(viewModelJavaClazz)
 }

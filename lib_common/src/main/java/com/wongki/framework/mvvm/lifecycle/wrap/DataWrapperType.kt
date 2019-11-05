@@ -1,4 +1,4 @@
-package com.wongki.framework.mvvm.lifecycle
+package com.wongki.framework.mvvm.lifecycle.wrap
 
 /**
  * @author  wangqi
@@ -6,7 +6,7 @@ package com.wongki.framework.mvvm.lifecycle
  * email:   wangqi7676@163.com
  * desc:    .
  */
-enum class DataType {
+enum class DataWrapperType {
     Normal,
     ArrayList
 }

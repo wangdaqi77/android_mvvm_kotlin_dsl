@@ -1,7 +1,7 @@
-package com.wongki.framework.mvvm.lifecycle
+package com.wongki.framework.mvvm.lifecycle.wrap
 
 import com.wongki.framework.mvvm.action.EventAction
-import com.wongki.framework.mvvm.AbsLiveDataViewModel
+import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
 
 /**
  * @author  wangqi
@@ -10,9 +10,10 @@ import com.wongki.framework.mvvm.AbsLiveDataViewModel
  * desc:    .
  *          数据包装类
  */
+@LiveDataViewModelDslMarker
 open class DataWrapper<T> {
     /**
-     * 当Action发生改变时postValue[AbsLiveDataViewModel.observe]
+     * 当Action发生改变时postValue[AbsLiveDataWrapperViewModel.observeLiveDataWrapper]
      */
     var action: EventAction = EventAction.DEFAULT
     var data: T? = null // 真正的数据

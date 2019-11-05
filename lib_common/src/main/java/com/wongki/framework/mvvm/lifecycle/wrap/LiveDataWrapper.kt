@@ -1,12 +1,12 @@
-package com.wongki.framework.mvvm.lifecycle
+package com.wongki.framework.mvvm.lifecycle.wrap
 
 import android.util.Log
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
-import com.wongki.framework.mvvm.AbsLiveDataViewModel
-import com.wongki.framework.mvvm.LiveDataViewModelDslMarker
 import com.wongki.framework.mvvm.action.EventAction
+import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
+import java.lang.RuntimeException
 
 /**
  * @author  wangqi
@@ -15,8 +15,7 @@ import com.wongki.framework.mvvm.action.EventAction
  * desc:    .
  */
 @LiveDataViewModelDslMarker
-class WrapLiveData<T> : MutableLiveData<DataWrapper<T>>() {
-
+class LiveDataWrapper<T> : MutableLiveData<DataWrapper<T>>() {
 
     fun setValue(action: EventAction, apply: DataWrapper<T>.() -> Unit): DataWrapper<T> {
         val dataWrapper = DataWrapper<T>()
@@ -27,14 +26,12 @@ class WrapLiveData<T> : MutableLiveData<DataWrapper<T>>() {
         return dataWrapper
     }
 
-
     /**
      * 发送数据到接收者[observe]
      */
     fun setValueForAction(action: EventAction) {
         setValue(action) {}
     }
-
 
     /**
      * 发送数据到接收者[observe]
@@ -52,7 +49,6 @@ class WrapLiveData<T> : MutableLiveData<DataWrapper<T>>() {
         return dataWrapper
     }
 
-
     /**
      * 发送数据到接收者[observe]
      */
@@ -61,51 +57,28 @@ class WrapLiveData<T> : MutableLiveData<DataWrapper<T>>() {
     }
 
 
-    @Deprecated("过时")
     override fun setValue(value: DataWrapper<T>?) {
+        throw RuntimeException("不支持此api")
     }
 
-    @Deprecated("过时")
     override fun postValue(value: DataWrapper<T>?) {
+        throw RuntimeException("不支持此api")
     }
 
-    @Deprecated("过时")
     override fun observe(owner: LifecycleOwner, observer: Observer<in DataWrapper<T>>) {
+        throw RuntimeException("不支持此api")
     }
 
-    @Deprecated("过时")
     override fun observeForever(observer: Observer<in DataWrapper<T>>) {
-    }
-
-    @LiveDataViewModelDslMarker
-    inner class ObserveBuilder {
-        lateinit var owner: LifecycleOwner
-        internal var onStart: (() -> Unit)? = null
-        internal var onCancel: (() -> Unit)? = null
-        internal var onFailed: ((Int, String) -> Boolean)? = null
-        internal var onSuccess: (T?.() -> Unit)? = null
-
-        fun onStart(onStart: () -> Unit) {
-            this.onStart = onStart
-        }
-        fun onCancel(onCancel: () -> Unit) {
-            this.onCancel = onCancel
-        }
-        fun onFailed(onFailed: ((Int, String) -> Boolean)) {
-            this.onFailed = onFailed
-        }
-        fun onSuccess(onSuccess: T?.() -> Unit) {
-            this.onSuccess = onSuccess
-        }
-
+        throw RuntimeException("不支持此api")
     }
 
     /**
      * 订阅，接收数据变化的事件通知
-     * 通知数据变化->[AbsLiveDataViewModel.observe]
+     * 通知数据变化->[AbsLiveDataWrapperViewModel.observeLiveDataWrapper]
      * @param onFailed 返回true代表上层处理，返回false代表框架处理，目前框架层会弹Toast
      */
-    fun observe(init:ObserveBuilder.()->Unit) {
+    fun observe(init: ObserveBuilder.()->Unit) {
         val observeBuilder = ObserveBuilder()
         observeBuilder.init()
         super.observe(observeBuilder.owner, Observer<DataWrapper<T>> { result ->
@@ -133,4 +106,31 @@ class WrapLiveData<T> : MutableLiveData<DataWrapper<T>>() {
 
         })
     }
+
+
+
+    @LiveDataViewModelDslMarker
+    inner class ObserveBuilder {
+        lateinit var owner: LifecycleOwner
+        internal var onStart: (() -> Unit)? = null
+        internal var onCancel: (() -> Unit)? = null
+        internal var onFailed: ((Int, String) -> Boolean)? = null
+        internal var onSuccess: (T?.() -> Unit)? = null
+
+        fun onStart(onStart: () -> Unit) {
+            this.onStart = onStart
+        }
+        fun onCancel(onCancel: () -> Unit) {
+            this.onCancel = onCancel
+        }
+        fun onFailed(onFailed: ((Int, String) -> Boolean)) {
+            this.onFailed = onFailed
+        }
+        fun onSuccess(onSuccess: T?.() -> Unit) {
+            this.onSuccess = onSuccess
+        }
+
+    }
+
+
 }

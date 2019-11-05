@@ -9,7 +9,7 @@ import com.wongki.framework.base.BaseActivity
 import com.wongki.framework.extensions.dialogDismiss
 import com.wongki.framework.extensions.showLoadingDialog
 import com.wongki.framework.extensions.toast
-import com.wongki.framework.mvvm.LiveDataViewModelDslMarker
+import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
 import com.wongki.framework.mvvm.getLiveDataViewModel
 
 import kotlinx.android.synthetic.main.activity_main.*
@@ -35,7 +35,7 @@ class MainActivity : BaseActivity() {
         // 2.attach的目的就是生成对应的MutableLiveData对象
         musicViewModel {
 
-            attachArraylist<SearchMusic.Item> {
+            attachLiveDataWrapperForArrayList<SearchMusic.Item> {
 
                 observe {
                     owner = this@MainActivity
@@ -51,9 +51,9 @@ class MainActivity : BaseActivity() {
                     }
 
                     onSuccess {
-                        val result = this
                         //成功
                         dialogDismiss(seqNo = 1)
+                        val result = this
                         result?.let { list ->
                             if (list.isNotEmpty()) {
                                 val item = list.first()

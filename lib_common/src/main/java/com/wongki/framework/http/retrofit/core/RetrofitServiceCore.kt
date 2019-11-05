@@ -36,18 +36,18 @@ abstract class RetrofitServiceCore<API> : AbsRetrofitServiceCore<API>(), ISSL {
      * @param preRequest 请求服务器的api接口定义
      * @param init 初始化网络请求器
      */
-    fun <RESPONSE_DATA> api(preRequest:API.()->Observable<CommonResponse<RESPONSE_DATA>>, init: RequesterBuilder<RESPONSE_DATA>.()-> RetrofitRequester<RESPONSE_DATA>):RetrofitRequester<RESPONSE_DATA>{
+    fun <RESPONSE_DATA> call(preRequest:API.()->Observable<CommonResponse<RESPONSE_DATA>>, init: RequesterBuilder<RESPONSE_DATA>.()-> RetrofitRequester<RESPONSE_DATA>):RetrofitRequester<RESPONSE_DATA>{
         return RequesterBuilder<RESPONSE_DATA>().let{
-            it.call(preRequest)
+            it.api(preRequest)
             it.init()
         }
     }
 
     /**
-     * 创建新的网络请求器
+     * 新的网络请求器
      * @param init 初始化网络请求器
      */
-    fun <RESPONSE_DATA> api(init: RequesterBuilder<RESPONSE_DATA>.() -> RetrofitRequester<RESPONSE_DATA>): RetrofitRequester<RESPONSE_DATA> {
+    fun <RESPONSE_DATA> call(init: RequesterBuilder<RESPONSE_DATA>.() -> RetrofitRequester<RESPONSE_DATA>): RetrofitRequester<RESPONSE_DATA> {
         return RequesterBuilder<RESPONSE_DATA>().init()
     }
 
@@ -66,7 +66,7 @@ abstract class RetrofitServiceCore<API> : AbsRetrofitServiceCore<API>(), ISSL {
         /**
          * api请求
          */
-        fun call(preRequest: API.() -> Observable<CommonResponse<RESPONSE_DATA>>) {
+        fun api(preRequest: API.() -> Observable<CommonResponse<RESPONSE_DATA>>) {
             this.preRequest = preRequest
         }
 
