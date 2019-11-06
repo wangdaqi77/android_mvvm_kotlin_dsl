@@ -9,25 +9,15 @@ import com.wongki.framework.base.BaseActivity
 import com.wongki.framework.extensions.dialogDismiss
 import com.wongki.framework.extensions.showLoadingDialog
 import com.wongki.framework.extensions.toast
-import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
-import com.wongki.framework.mvvm.getLiveDataViewModel
+import com.wongki.framework.mvvm.viewModel
 
-import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.activity_music.*
 import kotlinx.android.synthetic.main.content_main.*
 
-class MainActivity : BaseActivity() {
-
-    //1.获取ViewModel对象
-    private val musicViewModel by lazy { getLiveDataViewModel<MusicViewModel>() }
-
-    @LiveDataViewModelDslMarker
-    private fun musicViewModel(action: MusicViewModel.() -> Unit) {
-        musicViewModel.action()
-    }
-
+class MusicActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_music)
 
         initViewModel()
         initView()
@@ -36,18 +26,33 @@ class MainActivity : BaseActivity() {
 
     private fun initViewModel() {
         // 2.attach的目的就是生成对应的MutableLiveData对象
-        musicViewModel {
+        viewModel<MusicViewModel> {
 
             // 结果总数量
             attach<Int> {
                 kClass = Int::class
-                key = "total"
+                key = "setTotalCount"
 
                 // 订阅
                 observe {
-                    owner = this@MainActivity
+                    owner = this@MusicActivity
                     onChange {
-                        tv_total.text = "total：$this"
+                        tv_total.text = "$this"
+                    }
+                }
+            }
+
+
+            // 结果总数量
+            attach<String> {
+                kClass = String::class
+                key = "setResultList"
+
+                // 订阅
+                observe {
+                    owner = this@MusicActivity
+                    onChange {
+                        tv_result.text = "$this"
                     }
                 }
             }
@@ -57,9 +62,9 @@ class MainActivity : BaseActivity() {
             attachWrapperForArrayList<SearchMusic.Item> {
                 kClass = SearchMusic.Item::class
 
-                // 订阅
+                // 订阅网络请求结果
                 observe {
-                    owner = this@MainActivity
+                    owner = this@MusicActivity
                     onStart {
                         /*开始*/
                         showLoadingDialog(seqNo = 1)
@@ -73,25 +78,20 @@ class MainActivity : BaseActivity() {
                     onSuccess {
                         //成功
                         dialogDismiss(seqNo = 1)
-                        val result = this
-                        result?.let { list ->
-                            if (list.isNotEmpty()) {
-                                val item = list.first()
-                                Snackbar.make(
-                                    fab,
-                                    "《${item.title}》 - ${item.author}",
-                                    Snackbar.LENGTH_LONG
-                                )
-                                    .setAction("Action", null).show()
-                            }
-
-                        }
+                        Snackbar
+                            .make(fab, "成功", Snackbar.LENGTH_LONG)
+                            .setAction("Action", null)
+                            .show()
                     }
 
                     onFailed { _, message ->
                         // 失败
                         dialogDismiss(seqNo = 1)
-                        message.toast()
+                        Snackbar
+                            .make(fab, "失败：$message", Snackbar.LENGTH_LONG)
+                            .setAction("Action", null)
+                            .show()
+
                         true // 返回true代表上层处理，返回false代表框架处理，目前框架层会弹Toast
                     }
 
@@ -114,7 +114,9 @@ class MainActivity : BaseActivity() {
             }
 
             // 搜索音乐
-            musicViewModel.searchMusic(name)
+            viewModel<MusicViewModel>{
+                searchMusic(name)
+            }
         }
     }
 

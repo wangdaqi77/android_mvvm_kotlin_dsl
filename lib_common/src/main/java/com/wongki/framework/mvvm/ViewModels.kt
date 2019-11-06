@@ -4,7 +4,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProviders
-import com.wongki.framework.mvvm.factory.ViewModelFactory
+import com.wongki.framework.mvvm.factory.LiveDataViewModelFactory
 import com.wongki.framework.mvvm.lifecycle.LiveDataViewModel
 import java.lang.IllegalArgumentException
 
@@ -15,31 +15,29 @@ import java.lang.IllegalArgumentException
  * desc:    .
  */
 
-inline fun <reified T: ViewModel> FragmentActivity.getLiveDataViewModel(): T {
+@DslMarker
+annotation class ViewModelFactoryDslMarker
+
+@ViewModelFactoryDslMarker
+inline fun <reified T : ViewModel> FragmentActivity.viewModel(init: T.() -> Unit): T {
     val viewModelJavaClazz = T::class.java
-    viewModelJavaClazz.checkViewModelType(LiveDataViewModel::class.java)
-
-    return ViewModelProviders.of(this, ViewModelFactory()).get(viewModelJavaClazz)
+    val viewModel = ViewModelProviders.of(this, LiveDataViewModelFactory).get(viewModelJavaClazz)
+    viewModel.init()
+    return viewModel
 }
 
-inline fun <reified T: ViewModel> Fragment.getLiveDataViewModel(): T {
+@ViewModelFactoryDslMarker
+inline fun <reified T : ViewModel> Fragment.viewModel(init: T.() -> Unit): T {
     val viewModelJavaClazz = T::class.java
-    viewModelJavaClazz.checkViewModelType(LiveDataViewModel::class.java)
-
-    return ViewModelProviders.of(this, ViewModelFactory()).get(viewModelJavaClazz)
+    val viewModel = ViewModelProviders.of(this, LiveDataViewModelFactory).get(viewModelJavaClazz)
+    viewModel.init()
+    return viewModel
 }
 
-/**
- * 检查ViewModel的数据类型是否匹配
- */
-@Throws(IllegalArgumentException::class)
-fun <T : ViewModel> Class<T>.checkViewModelType(clazz: Class<*>) {
-    if (!clazz.isAssignableFrom(this)) {
-        throw IllegalArgumentException("${this.name}必须继承${clazz.name}")
-    }
-//
-//    if (!ViewModel::class.java.isAssignableFrom(this)) {
-//        throw IllegalArgumentException("${this.name}必须继承${ViewModel::class.java.name}")
-//    }
+@ViewModelFactoryDslMarker
+class ViewModelBuilder {
+
 }
+
+
 

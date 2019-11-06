@@ -1,30 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        tools:showIn="@layout/activity_main"
-        tools:context=".view.MainActivity">
+        tools:context=".view.MusicActivity"
+        tools:showIn="@layout/activity_music">
+
+    <EditText
+            android:id="@+id/et_primary_key"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:hint="歌曲、歌手"
+            app:layout_constraintTop_toTopOf="parent" />
+
+
+    <TextView
+            android:id="@+id/none1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="搜索结果总数:"
+            android:textSize="16sp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/et_primary_key" />
 
     <TextView
             android:id="@+id/tv_total"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="total:"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent"/>
+            android:text=""
+            android:textSize="16sp"
+            app:layout_constraintLeft_toRightOf="@+id/none1"
+            app:layout_constraintBaseline_toBaselineOf="@+id/none1"
+            />
 
-    <EditText
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginBottom="20dp"
-            android:id="@+id/et_primary_key"
-            android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:hint="请输入你要搜索的关键字"
-    />
+    <TextView
+            android:id="@+id/none2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="搜索结果列表:"
+            android:textSize="16sp"
+            app:layout_constraintLeft_toLeftOf="@+id/none1"
+            app:layout_constraintTop_toBottomOf="@+id/none1" />
+
+    <TextView
+
+            android:id="@+id/tv_result"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="暂无结果"
+            app:layout_constraintLeft_toLeftOf="@+id/none2"
+            app:layout_constraintTop_toBottomOf="@+id/none2" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

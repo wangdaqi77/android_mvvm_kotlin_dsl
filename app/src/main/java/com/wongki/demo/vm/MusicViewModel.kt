@@ -24,25 +24,14 @@ class MusicViewModel : LiveDataViewModel() {
                 api { searchMusic(name = name) }
 
                 observeLiveDataWrapperForArrayList {
-                    // 成功时,如果你需要修改数据...
+                    // 设置结果总数
                     setTotalCount(this)
+                    // 设置结果
+                    setResultList(this)
                 }
             }
 
         }
-
-
-//
-//        musicService {
-//
-//            api({ searchMusic(name = name)}) {
-//
-//                observeForArrayList{
-//                    // 成功时,如果你需要修改数据...
-//                }
-//            }
-//
-//        }
 
     }
 
@@ -50,10 +39,28 @@ class MusicViewModel : LiveDataViewModel() {
 
         setValue<Int> {
             kClass = Int::class
-            key = "total"
+            key = "setTotalCount"
             value {
                 list?.size
             }
+        }
+
+    }
+
+    private fun setResultList(list: ArrayList<SearchMusic.Item>?) {
+        var result = ""
+        list?.apply {
+            this.forEachIndexed { index, item ->
+                result += "${index + 1}. ${item.title} - ${item.author}  播放地址:${item.url}\n"
+            }
+        }
+
+        if (result.isEmpty()) result = "暂无结果"
+
+        setValue<String> {
+            kClass = String::class
+            key = "setResultList"
+            value { result }
         }
 
     }
