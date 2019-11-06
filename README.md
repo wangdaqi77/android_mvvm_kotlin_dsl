@@ -1,4 +1,4 @@
-# mvvm_kolin
+# android_mvvm_kotlin_dsl
 
 ![demo.png](./assets/demo.png)
 
