@@ -1,8 +1,6 @@
 package com.wongki.framework.mvvm.lifecycle.wrap
 
-import com.wongki.framework.mvvm.lifecycle.LiveDataKey
 import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
-
 
 /**
  * @author  wangqi
@@ -10,7 +8,8 @@ import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
  * email:   wangqi7676@163.com
  * desc:    .
  */
-@LiveDataViewModelDslMarker
-open class WrapperKey:LiveDataKey() {
 
+
+@LiveDataViewModelDslMarker
+class LiveDataWrapperGetterValueBuilder<T : Any> : WrapperKeyBuilder<T>() {
 }

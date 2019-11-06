@@ -11,10 +11,7 @@ import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
  *          数据包装类
  */
 @LiveDataViewModelDslMarker
-open class DataWrapper<T> {
-    /**
-     * 当Action发生改变时postValue[AbsLiveDataWrapperViewModel.observeLiveDataWrapper]
-     */
+open class ValueWrapper<T> {
     var action: EventAction = EventAction.DEFAULT
     var data: T? = null // 真正的数据
     var code: Int = -1 // 错误码

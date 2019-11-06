@@ -1,6 +1,6 @@
 package com.wongki.framework.mvvm.lifecycle.exception
 
-import com.wongki.framework.mvvm.lifecycle.Key
+import com.wongki.framework.mvvm.lifecycle.LiveDataKey
 
 /**
  * @author  wangqi
@@ -8,5 +8,5 @@ import com.wongki.framework.mvvm.lifecycle.Key
  * email:   wangqi7676@163.com
  * desc:    .
  */
-class NoAttachException(key: Key) : Exception("没有装载过, key:${key.key}") {
+class NoAttachException(key: LiveDataKey) : Exception("没有装载过, key:${key.key}") {
 }

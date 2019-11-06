@@ -8,7 +8,7 @@ package com.wongki.framework.mvvm.lifecycle
  * desc:    .
  */
 @LiveDataViewModelDslMarker
-open class Key {
+open class LiveDataKey {
     lateinit var key: String
     override fun toString() = key
 
@@ -16,7 +16,7 @@ open class Key {
 
     override fun equals(other: Any?): Boolean {
         if (other == null) return false
-        if (other !is Key) return false
+        if (other !is LiveDataKey) return false
         return key == other.key
     }
 }

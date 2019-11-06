@@ -8,5 +8,5 @@ import com.wongki.framework.mvvm.lifecycle.LiveDataKey
  * email:   wangqi7676@163.com
  * desc:    .
  */
-class AttachedException(key: LiveDataKey) : Exception("已经装载过, key:${key.key}") {
+class NoSetValueException(key: LiveDataKey) : Exception("没有设置value, key:${key.key}") {
 }

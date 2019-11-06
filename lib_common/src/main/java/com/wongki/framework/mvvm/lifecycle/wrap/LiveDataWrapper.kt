@@ -15,61 +15,32 @@ import java.lang.RuntimeException
  * desc:    .
  */
 @LiveDataViewModelDslMarker
-class LiveDataWrapper<T> : MutableLiveData<DataWrapper<T>>() {
-
-    fun setValue(action: EventAction, apply: DataWrapper<T>.() -> Unit): DataWrapper<T> {
-        val dataWrapper = DataWrapper<T>()
-        dataWrapper.action = action
-        apply(dataWrapper)
-        // 发送到订阅的位置
-        super.setValue(dataWrapper)
-        return dataWrapper
-    }
-
-    /**
-     * 发送数据到接收者[observe]
-     */
-    fun setValueForAction(action: EventAction) {
-        setValue(action) {}
-    }
+class LiveDataWrapper<T> : MutableLiveData<ValueWrapper<T>>() {
 
     /**
      * 发送数据到接收者[observe]
      */
     @Suppress("UNCHECKED_CAST")
-    fun <ITEM> setValueForArrayList(
-        action: EventAction,
-        apply: DataWrapper<ArrayList<ITEM>>.() -> Unit
-    ): DataWrapper<ArrayList<ITEM>> {
-        val dataWrapper = DataWrapper<ArrayList<ITEM>>()
-        dataWrapper.action = action
-        apply(dataWrapper)
+    internal fun <ITEM> setValueForArrayList(value: ValueWrapper<ArrayList<ITEM>>?): ValueWrapper<ArrayList<ITEM>> {
         // 发送到订阅的位置
-        super.setValue(dataWrapper as DataWrapper<T>)
-        return dataWrapper
-    }
-
-    /**
-     * 发送数据到接收者[observe]
-     */
-    fun <ITEM : Any> setValueForArrayListForAction(action: EventAction) {
-        setValueForArrayList<ITEM>(action) {}
+        super.setValue(value as ValueWrapper<T>)
+        return value
     }
 
 
-    override fun setValue(value: DataWrapper<T>?) {
+    override fun setValue(value: ValueWrapper<T>?) {
+        super.setValue(value)
+    }
+
+    override fun postValue(value: ValueWrapper<T>?) {
         throw RuntimeException("不支持此api")
     }
 
-    override fun postValue(value: DataWrapper<T>?) {
+    override fun observe(owner: LifecycleOwner, observer: Observer<in ValueWrapper<T>>) {
         throw RuntimeException("不支持此api")
     }
 
-    override fun observe(owner: LifecycleOwner, observer: Observer<in DataWrapper<T>>) {
-        throw RuntimeException("不支持此api")
-    }
-
-    override fun observeForever(observer: Observer<in DataWrapper<T>>) {
+    override fun observeForever(observer: Observer<in ValueWrapper<T>>) {
         throw RuntimeException("不支持此api")
     }
 
@@ -78,10 +49,10 @@ class LiveDataWrapper<T> : MutableLiveData<DataWrapper<T>>() {
      * 通知数据变化->[AbsLiveDataWrapperViewModel.observeLiveDataWrapper]
      * @param onFailed 返回true代表上层处理，返回false代表框架处理，目前框架层会弹Toast
      */
-    fun observe(init: ObserveBuilder.()->Unit) {
+    fun observe(init: ObserveBuilder.() -> Unit) {
         val observeBuilder = ObserveBuilder()
         observeBuilder.init()
-        super.observe(observeBuilder.owner, Observer<DataWrapper<T>> { result ->
+        super.observe(observeBuilder.owner, Observer<ValueWrapper<T>> { result ->
             if (result != null) {
                 val action = result.action
                 when (action) {
@@ -95,8 +66,9 @@ class LiveDataWrapper<T> : MutableLiveData<DataWrapper<T>>() {
                         observeBuilder.onSuccess?.invoke(result.data)
                     }
                     EventAction.FAILED -> {
-                        val errorProcessed = observeBuilder.onFailed?.invoke(result.code, result.message)
-                        result.errorProcessed = errorProcessed ?:false
+                        val errorProcessed =
+                            observeBuilder.onFailed?.invoke(result.code, result.message)
+                        result.errorProcessed = errorProcessed ?: false
                     }
                     else -> {
                         Log.e("LiveDataViewModel", "未处理的Action：${action.name}")
@@ -106,7 +78,6 @@ class LiveDataWrapper<T> : MutableLiveData<DataWrapper<T>>() {
 
         })
     }
-
 
 
     @LiveDataViewModelDslMarker
@@ -120,12 +91,15 @@ class LiveDataWrapper<T> : MutableLiveData<DataWrapper<T>>() {
         fun onStart(onStart: () -> Unit) {
             this.onStart = onStart
         }
+
         fun onCancel(onCancel: () -> Unit) {
             this.onCancel = onCancel
         }
+
         fun onFailed(onFailed: ((Int, String) -> Boolean)) {
             this.onFailed = onFailed
         }
+
         fun onSuccess(onSuccess: T?.() -> Unit) {
             this.onSuccess = onSuccess
         }

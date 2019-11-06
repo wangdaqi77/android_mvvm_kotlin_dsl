@@ -6,8 +6,8 @@ package com.wongki.framework.mvvm.lifecycle
  * email:   wangqi7676@163.com
  * desc:    .
  */
+
+
 @LiveDataViewModelDslMarker
-open class KeyBuilder {
-    lateinit var key: String
-    fun buildKey() = Key().apply { key }
+open class LiveDataGetterValueBuilder<T : Any> : LiveDataKeyBuilder<T>() {
 }

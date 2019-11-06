@@ -2,7 +2,7 @@ package com.wongki.demo.vm
 
 import com.wongki.demo.model.remote.musicService
 import com.wongki.demo.model.bean.SearchMusic
-import com.wongki.framework.mvvm.BaseViewModel
+import com.wongki.framework.mvvm.lifecycle.LiveDataViewModel
 import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
 
 /**
@@ -13,7 +13,7 @@ import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
  */
 
 @LiveDataViewModelDslMarker
-class MusicViewModel : BaseViewModel() {
+class MusicViewModel : LiveDataViewModel() {
 
     fun searchMusic(name: String) {
 
@@ -23,17 +23,13 @@ class MusicViewModel : BaseViewModel() {
 
                 api { searchMusic(name = name) }
 
-                observeLiveDataWrapperForArrayList{
+                observeLiveDataWrapperForArrayList {
                     // 成功时,如果你需要修改数据...
                     setTotalCount(this)
                 }
             }
 
         }
-
-
-
-
 
 
 //
@@ -50,8 +46,15 @@ class MusicViewModel : BaseViewModel() {
 
     }
 
-    private fun setTotalCount(list: java.util.ArrayList<SearchMusic.Item>?) {
-        val count = list?.size ?:0
+    private fun setTotalCount(list: ArrayList<SearchMusic.Item>?) {
+
+        setValue<Int> {
+            kClass = Int::class
+            key = "total"
+            value {
+                list?.size
+            }
+        }
 
     }
 }

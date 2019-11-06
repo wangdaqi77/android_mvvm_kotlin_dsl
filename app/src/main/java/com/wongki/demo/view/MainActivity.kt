@@ -19,8 +19,11 @@ class MainActivity : BaseActivity() {
 
     //1.获取ViewModel对象
     private val musicViewModel by lazy { getLiveDataViewModel<MusicViewModel>() }
+
     @LiveDataViewModelDslMarker
-    private fun musicViewModel(action:MusicViewModel.()->Unit){musicViewModel.action()}
+    private fun musicViewModel(action: MusicViewModel.() -> Unit) {
+        musicViewModel.action()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,11 +38,28 @@ class MainActivity : BaseActivity() {
         // 2.attach的目的就是生成对应的MutableLiveData对象
         musicViewModel {
 
-            attachLiveDataWrapperForArrayList<SearchMusic.Item> {
+            // 结果总数量
+            attach<Int> {
+                kClass = Int::class
+                key = "total"
 
+                // 订阅
                 observe {
                     owner = this@MainActivity
+                    onChange {
+                        tv_total.text = "total：$this"
+                    }
+                }
+            }
 
+
+            // 搜索音乐结果
+            attachWrapperForArrayList<SearchMusic.Item> {
+                kClass = SearchMusic.Item::class
+
+                // 订阅
+                observe {
+                    owner = this@MainActivity
                     onStart {
                         /*开始*/
                         showLoadingDialog(seqNo = 1)
@@ -77,7 +97,6 @@ class MainActivity : BaseActivity() {
 
                 }
             }
-
 
 
         }

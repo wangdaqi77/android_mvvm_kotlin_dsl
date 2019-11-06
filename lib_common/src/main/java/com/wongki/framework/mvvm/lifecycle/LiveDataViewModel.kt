@@ -1,11 +1,11 @@
 package com.wongki.framework.mvvm.lifecycle
 
-import android.util.Log
-import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Observer
-import com.wongki.framework.mvvm.lifecycle.exception.AttachedException
-import com.wongki.framework.mvvm.lifecycle.exception.NoAttachException
+import androidx.lifecycle.ViewModel
+import com.wongki.framework.http.retrofit.core.RetrofitServiceCore
+import com.wongki.framework.mvvm.action.EventAction
+import com.wongki.framework.mvvm.lifecycle.wrap.*
+import com.wongki.framework.mvvm.remote.retrofit.IRetrofitViewModel
 
 /**
  * @author  wangqi
@@ -14,89 +14,184 @@ import com.wongki.framework.mvvm.lifecycle.exception.NoAttachException
  * desc:    .
  */
 @LiveDataViewModelDslMarker
-class LiveDataViewModel : ILiveDataViewModel {
+open class LiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveDataViewModel,
+    ILiveDataWrapperViewModel {
     val TAG = javaClass.simpleName
-    override val mLiveDatas: HashMap<Key, MutableLiveData<*>?> = HashMap()
+    override val mLiveDatas: HashMap<LiveDataKey, MutableLiveData<*>?> = HashMap()
+    override val mLiveDataWrappers: HashMap<LiveDataKey, LiveDataWrapper<*>?> = HashMap()
+
 
     @Suppress("UNCHECKED_CAST")
-    inline fun <reified T : Any> attachLiveData(init: LiveDataBuilder<T>.() -> Unit): MutableLiveData<T> {
-        val liveDataBuilder = LiveDataBuilder<T>()
-        liveDataBuilder.init()
-        val keyBuilder = liveDataBuilder.key
-        val key = getKey<T> { keyBuilder }
-        if (!mLiveDatas.containsKey(key)) {
-            mLiveDatas[key] = liveDataBuilder.build()
-            Log.d(TAG, "")
-        } else {
-            throw AttachedException(key)
+    inline fun <API, reified RESPONSE_DATA : Any> RetrofitServiceCore<API>.RequesterBuilder<RESPONSE_DATA>.observeLiveDataWrapper(
+        crossinline success: RESPONSE_DATA?.() -> Unit = {}
+    ): RetrofitServiceCore<API>.RetrofitRequester<RESPONSE_DATA> {
+        val kClass = RESPONSE_DATA::class
+        return observer {
+
+            onStart {
+                // 通知开始
+                setWrapperValue<RESPONSE_DATA> {
+                    this.kClass = kClass
+
+                    value {
+                        action = EventAction.START
+                    }
+                }
+            }
+
+            onCancel {
+                // 通知取消
+                setWrapperValue<RESPONSE_DATA> {
+                    this.kClass = kClass
+                    value {
+                        action = EventAction.CANCEL
+                    }
+                }
+            }
+
+            onSuccess {
+                val result = this
+                success(result)
+                // 通知成功
+                setWrapperValue<RESPONSE_DATA> {
+                    this.kClass = kClass
+                    value {
+                        action = EventAction.SUCCESS
+                        data = result
+                    }
+                }
+
+            }
+
+            onFailed { code, message ->
+                // 通知失败
+                setWrapperValue<RESPONSE_DATA> {
+                    this.kClass = kClass
+                    value {
+                        action = EventAction.FAILED
+                        this.code = code
+                        this.message = message
+                    }
+                }
+
+                return@onFailed getWrapperValue<RESPONSE_DATA> {
+                    this.kClass = kClass
+                }?.errorProcessed ?: false
+            }
+        }.apply {
+            lifecycleObserver { this@LiveDataViewModel }
         }
-        return mLiveDatas[key] as MutableLiveData<T>
+
     }
 
-
-    /**
-     * 获取子live data
-     */
     @Suppress("UNCHECKED_CAST")
-    inline fun <reified T : Any> getLiveData(initKey: String): MutableLiveData<T> {
-        val key = getKey<T> { initKey }
-        if (!mLiveDatas.containsKey(key)) {
-            throw NoAttachException(key)
+    inline fun <API, reified ITEM : Any> RetrofitServiceCore<API>.RequesterBuilder<ArrayList<ITEM>>.observeLiveDataWrapperForArrayList(
+        crossinline success: ArrayList<ITEM>?.() -> Unit = {}
+    ): RetrofitServiceCore<API>.RetrofitRequester<ArrayList<ITEM>> {
+        val kClass = ITEM::class
+        return observer {
+
+            onStart {
+                // 通知开始
+                setWrapperArrayListValue<ITEM> {
+                    this.kClass = kClass
+
+                    value {
+                        action = EventAction.START
+                    }
+                }
+            }
+
+            onCancel {
+                // 通知取消
+                setWrapperArrayListValue<ITEM> {
+                    this.kClass = kClass
+                    value {
+                        action = EventAction.CANCEL
+                    }
+                }
+            }
+
+            onSuccess {
+                val result = this
+                success(result)
+                // 通知成功
+                setWrapperArrayListValue<ITEM> {
+                    this.kClass = kClass
+                    value {
+                        action = EventAction.SUCCESS
+                        data = result
+                    }
+                }
+
+            }
+
+            onFailed { code, message ->
+                // 通知失败
+                setWrapperArrayListValue<ITEM> {
+                    this.kClass = kClass
+                    value {
+                        action = EventAction.FAILED
+                        this.code = code
+                        this.message = message
+                    }
+                }
+
+                return@onFailed getWrapperArrayListValue<ITEM> {
+                    this.kClass = kClass
+                }?.errorProcessed ?: false
+            }
+        }.apply {
+            lifecycleObserver { this@LiveDataViewModel }
         }
-        return mLiveDatas[key] as MutableLiveData<T>
+
     }
+//
+//    /**
+//     * 用于一次点击，多次网络请求
+//     * @param setStartAction 是否发送Start事件  只有多次网络请求的第一次是需要发送Start事件
+//     * @param finalAttachedKClass 最终订阅的kClass，与attach一一对应 [attachLiveDataWrapper]
+//     * @param success 成功的回调
+//     * @return 请求器[RetrofitServiceCore.RetrofitRequester]
+//     */
+//    @Suppress("UNCHECKED_CAST")
+//    inline fun <reified T : Any, SERVICE, reified RESPONSE_DATA : Any> RetrofitServiceCore<SERVICE>.RequesterBuilder<RESPONSE_DATA>.observeLiveDataWrapperForMulti(
+//        setStartAction: Boolean,
+//        finalAttachedKClass: KClass<T>,
+//        crossinline success: RESPONSE_DATA?.() -> Unit
+//    ): RetrofitServiceCore<SERVICE>.RetrofitRequester<RESPONSE_DATA> {
+//        return observer {
+//
+//            onStart {
+//                if (setStartAction) {
+//                    getLiveDataWrapper(finalAttachedKClass).setValueForAction(EventAction.START)
+//                }
+//            }
+//
+//            onCancel {
+//                getLiveDataWrapper(finalAttachedKClass).setValueForAction(EventAction.CANCEL)
+//            }
+//
+//            onSuccess {
+//                success(this)
+//            }
+//
+//            onFailed { code, message ->
+//                val dataWrapper = getLiveDataWrapper(finalAttachedKClass).setValue(EventAction.FAILED) {
+//                    this.code = code
+//                    this.message = message
+//                }
+//                return@onFailed dataWrapper.errorProcessed
+//            }
+//
+//        }.apply {
+//            lifecycleObserver { this@AbsLiveDataWrapperViewModel }
+//        }
+//    }
+//
 
-    /**
-     * 获取key
-     */
-    inline fun <reified T : Any> getKey(init: () -> String): Key {
-        val keyBuilder = KeyBuilder()
-        val className = T::class.java.name
-        val initKey = init.invoke()
-        keyBuilder.key = "$className-${initKey}"
-        return keyBuilder.buildKey()
+    override fun onCleared() {
+        super.onCleared()
+        onDestroy()
     }
-
-    /**
-     * 获取key
-     */
-    inline fun <reified T : Any> setValue(init: LiveDataSetterValueBuilder<T>.() -> Unit) {
-        val liveDataSetterValueBuilder = LiveDataSetterValueBuilder<T>()
-        liveDataSetterValueBuilder.init()
-        val initKey = liveDataSetterValueBuilder.key
-        getLiveData<T>(initKey).value = liveDataSetterValueBuilder.value
-    }
-
-    /**
-     * 获取key
-     */
-    inline fun <reified T : Any> getValue(init: LiveDataGetterValueBuilder<T>.() -> Unit): T? {
-        val liveDataGetterValueBuilder = LiveDataGetterValueBuilder<T>()
-        liveDataGetterValueBuilder.init()
-        val initKey = liveDataGetterValueBuilder.key
-        return getLiveData<T>(initKey).value
-    }
-
-    class LiveDataBuilder<T> : KeyBuilder() {
-        private lateinit var owner: LifecycleOwner
-        private var onChange: (T?.() -> Unit)? = null
-
-        fun observe(onChange: T?.() -> Unit) {
-            this.onChange = onChange
-        }
-
-        fun build(): MutableLiveData<T> {
-            val mutableLiveData = MutableLiveData<T>()
-            mutableLiveData.observe(owner,
-                Observer<T> { t -> this@LiveDataBuilder.onChange?.invoke(t) })
-            return mutableLiveData
-        }
-    }
-
-    class LiveDataSetterValueBuilder<T> : KeyBuilder() {
-        var value: T? = null
-    }
-
-    class LiveDataGetterValueBuilder<T> : KeyBuilder()
-
 }

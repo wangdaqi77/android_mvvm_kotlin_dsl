@@ -14,16 +14,34 @@ val musicViewModel by lazy { getLiveDataViewModel<MusicViewModel>() }
 ```kotlin
 // attach的目的是在musicViewModel生成对应的LiveData对象，observe的目的是订阅
         musicViewModel {
-
-            attachArraylist<SearchMusic.Item> {
-
+        
+            // 结果总数量
+            attach<Int> {
+            
+                kClass = Int::class
+                key = "total"
+                // 订阅
+                observe {
+                    owner = this@MainActivity
+                    onChange {
+                        tv_total.text = "total：$this"
+                    }
+                }
+                
+            }
+            
+            // 搜索音乐结果
+            attachWrapperForArrayList<SearchMusic.Item> {
+            
+                kClass = SearchMusic.Item::class
+                // 订阅
                 observe {
                     owner = this@MainActivity
                     onSuccess {
                         // show...
                     }
-
                 }
+                
             }
 
         }
@@ -51,11 +69,11 @@ class MusicViewModel : AbsLiveDataViewModel() {
 
         musicService {
 
-            api<ArrayList<SearchMusic.Item>> {
+            call<ArrayList<SearchMusic.Item>> {
 
-                call { searchMusic(name = name) }
+                api { searchMusic(name = name) }
 
-                observeForArrayList{
+                observeLiveDataWrapperForArrayList{
                     // 成功时,如果你需要修改数据...
                 }
             }

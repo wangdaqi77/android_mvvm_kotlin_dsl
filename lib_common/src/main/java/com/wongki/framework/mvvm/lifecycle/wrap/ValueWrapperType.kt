@@ -6,7 +6,7 @@ package com.wongki.framework.mvvm.lifecycle.wrap
  * email:   wangqi7676@163.com
  * desc:    .
  */
-enum class DataWrapperType {
+enum class ValueWrapperType {
     Normal,
     ArrayList
 }
