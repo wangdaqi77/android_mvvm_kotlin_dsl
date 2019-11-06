@@ -46,11 +46,9 @@ class LiveDataWrapper<T> : MutableLiveData<ValueWrapper<T>>() {
 
     /**
      * 订阅，接收数据变化的事件通知
-     * 通知数据变化->[AbsLiveDataWrapperViewModel.observeLiveDataWrapper]
-     * @param onFailed 返回true代表上层处理，返回false代表框架处理，目前框架层会弹Toast
      */
-    fun observe(init: ObserveBuilder.() -> Unit) {
-        val observeBuilder = ObserveBuilder()
+    fun observe(init: LiveDataWrapperObserveBuilder<T>.() -> Unit) {
+        val observeBuilder = LiveDataWrapperObserveBuilder<T>()
         observeBuilder.init()
         super.observe(observeBuilder.owner, Observer<ValueWrapper<T>> { result ->
             if (result != null) {
@@ -80,31 +78,6 @@ class LiveDataWrapper<T> : MutableLiveData<ValueWrapper<T>>() {
     }
 
 
-    @LiveDataViewModelDslMarker
-    inner class ObserveBuilder {
-        lateinit var owner: LifecycleOwner
-        internal var onStart: (() -> Unit)? = null
-        internal var onCancel: (() -> Unit)? = null
-        internal var onFailed: ((Int, String) -> Boolean)? = null
-        internal var onSuccess: (T?.() -> Unit)? = null
-
-        fun onStart(onStart: () -> Unit) {
-            this.onStart = onStart
-        }
-
-        fun onCancel(onCancel: () -> Unit) {
-            this.onCancel = onCancel
-        }
-
-        fun onFailed(onFailed: ((Int, String) -> Boolean)) {
-            this.onFailed = onFailed
-        }
-
-        fun onSuccess(onSuccess: T?.() -> Unit) {
-            this.onSuccess = onSuccess
-        }
-
-    }
 
 
 }

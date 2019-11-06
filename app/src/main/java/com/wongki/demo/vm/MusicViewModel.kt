@@ -16,18 +16,23 @@ import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
 class MusicViewModel : LiveDataViewModel() {
 
     fun searchMusic(name: String) {
-
+        // 请求服务器获取搜索结果
         musicService {
 
-            call<ArrayList<SearchMusic.Item>> {
+            callArrayList<SearchMusic.Item> {
 
                 api { searchMusic(name = name) }
 
-                observeLiveDataWrapperForArrayList {
-                    // 设置结果总数
-                    setTotalCount(this)
-                    // 设置结果
-                    setResultList(this)
+                // 真正发起网络请求&&通知UI前做一些事情（ex：设置结果总数和设置结果列表）
+                observeWithBeforeNotifyUIForArrayList {
+
+                    onSuccess{
+                        // 设置结果总数
+                        this@MusicViewModel.setTotalCount(this)
+                        // 设置结果列表
+                        this@MusicViewModel.setResultList(this)
+                    }
+
                 }
             }
 
@@ -35,8 +40,10 @@ class MusicViewModel : LiveDataViewModel() {
 
     }
 
+    // 设置结果总数
     private fun setTotalCount(list: ArrayList<SearchMusic.Item>?) {
 
+        // 通知订阅的地方
         setValue<Int> {
             kClass = Int::class
             key = "setTotalCount"
@@ -47,6 +54,7 @@ class MusicViewModel : LiveDataViewModel() {
 
     }
 
+    // 设置结果列表
     private fun setResultList(list: ArrayList<SearchMusic.Item>?) {
         var result = ""
         list?.apply {
@@ -57,6 +65,7 @@ class MusicViewModel : LiveDataViewModel() {
 
         if (result.isEmpty()) result = "暂无结果"
 
+        // 通知订阅的地方
         setValue<String> {
             kClass = String::class
             key = "setResultList"

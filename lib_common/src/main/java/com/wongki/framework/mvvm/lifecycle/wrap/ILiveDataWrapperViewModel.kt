@@ -152,9 +152,9 @@ interface ILiveDataWrapperViewModel {
     @LiveDataViewModelDslMarker
     class LiveDataWrapperBuilder<T : Any> : WrapperKeyBuilder<T>() {
         lateinit var owner: LifecycleOwner
-        private var initLiveDataWrapper: (LiveDataWrapper<T>.ObserveBuilder.() -> Unit)? = null
+        private var initLiveDataWrapper: (LiveDataWrapperObserveBuilder<T>.() -> Unit)? = null
 
-        fun observe(initLiveDataWrapper: LiveDataWrapper<T>.ObserveBuilder.() -> Unit) {
+        fun observe(initLiveDataWrapper: LiveDataWrapperObserveBuilder<T>.() -> Unit) {
             this.initLiveDataWrapper = initLiveDataWrapper
         }
 
@@ -169,9 +169,9 @@ interface ILiveDataWrapperViewModel {
 
     @LiveDataViewModelDslMarker
     class LiveDataWrapperArrayListBuilder<T : Any> : WrapperKeyBuilder<T>() {
-        private lateinit var initLiveDataWrapper: LiveDataWrapper<ArrayList<T>>.ObserveBuilder.() -> Unit
+        private lateinit var initLiveDataWrapper: LiveDataWrapperObserveBuilder<ArrayList<T>>.() -> Unit
 
-        fun observe(initLiveDataWrapper: LiveDataWrapper<ArrayList<T>>.ObserveBuilder.() -> Unit) {
+        fun observe(initLiveDataWrapper: LiveDataWrapperObserveBuilder<ArrayList<T>>.() -> Unit) {
             this.initLiveDataWrapper = initLiveDataWrapper
         }
 

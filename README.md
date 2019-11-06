@@ -15,7 +15,7 @@ viewModel<MusicViewModel> {
         kClass = Int::class
         key = "setTotalCount"
 
-        // 订阅
+        // 订阅，观察数据变动
         observe {
             owner = this@MusicActivity
             onChange {
@@ -30,7 +30,7 @@ viewModel<MusicViewModel> {
         kClass = String::class
         key = "setResultList"
 
-        // 订阅
+        // 订阅，观察数据变动
         observe {
             owner = this@MusicActivity
             onChange {
@@ -44,7 +44,7 @@ viewModel<MusicViewModel> {
     attachWrapperForArrayList<SearchMusic.Item> {
     
         kClass = SearchMusic.Item::class
-        // 订阅网络请求结果
+        // 订阅，观察网络请求状态和结果
         observe {
             owner = this@MainActivity
             onStart {}
@@ -79,28 +79,30 @@ interface MusicApi {
 class MusicViewModel : LiveDataViewModel() {
 
     fun searchMusic(name: String) {
-
+        // 请求服务器获取搜索结果
         musicService {
 
-            call<ArrayList<SearchMusic.Item>> {
-
+            callArrayList<SearchMusic.Item> {
                 api { searchMusic(name = name) }
-
-                observeLiveDataWrapperForArrayList{
-                    // 设置结果总数
-                    setTotalCount(this)
-                    // 设置结果
-                    setResultList(this)
+                // 真正发起网络请求&&通知UI前做一些事情（ex：设置搜索结果总数和设置结果列表）
+                observeWithBeforeNotifyUIForArrayList {
+                    onSuccess{
+                        // 设置搜索结果总数
+                        this@MusicViewModel.setTotalCount(this)
+                        // 设置结果列表
+                        this@MusicViewModel.setResultList(this)
+                    }
                 }
             }
 
         }
-        
-    }
-    
-    
-    private fun setTotalCount(list: ArrayList<SearchMusic.Item>?) {
 
+    }
+
+    
+    // 设置搜索结果总数
+    private fun setTotalCount(list: ArrayList<SearchMusic.Item>?) {
+        // 通知订阅的地方
         setValue<Int> {
             kClass = Int::class
             key = "setTotalCount"
@@ -108,7 +110,8 @@ class MusicViewModel : LiveDataViewModel() {
         }
 
     }
-
+    
+    // 设置结果列表
     private fun setResultList(list: ArrayList<SearchMusic.Item>?) {
         var result = ""
         list?.apply {
@@ -119,6 +122,7 @@ class MusicViewModel : LiveDataViewModel() {
 
         if (result.isEmpty()) result = "暂无结果"
 
+        // 通知订阅的地方
         setValue<String> {
             kClass = String::class
             key = "setResultList"

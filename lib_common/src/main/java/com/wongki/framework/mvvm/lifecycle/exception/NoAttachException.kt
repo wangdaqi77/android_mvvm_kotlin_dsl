@@ -8,5 +8,5 @@ import com.wongki.framework.mvvm.lifecycle.LiveDataKey
  * email:   wangqi7676@163.com
  * desc:    .
  */
-class NoAttachException(key: LiveDataKey) : Exception("没有装载过, key:${key.key}") {
+class NoAttachException(key: LiveDataKey) : Exception("没有装载过, fullKey:${key.key}") {
 }

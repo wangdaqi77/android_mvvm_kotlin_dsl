@@ -21,14 +21,20 @@ open class LiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveDataViewMod
     override val mLiveDataWrappers: HashMap<LiveDataKey, LiveDataWrapper<*>?> = HashMap()
 
 
+    /**
+     * 真正发起网络请求&&通知UI前做一些事情
+     */
     @Suppress("UNCHECKED_CAST")
-    inline fun <API, reified RESPONSE_DATA : Any> RetrofitServiceCore<API>.RequesterBuilder<RESPONSE_DATA>.observeLiveDataWrapper(
-        crossinline success: RESPONSE_DATA?.() -> Unit = {}
+    inline fun <API, reified RESPONSE_DATA : Any> RetrofitServiceCore<API>.RequesterBuilder<RESPONSE_DATA>.observeWithBeforeNotifyUI(
+        crossinline init: ObserveBuilder<RESPONSE_DATA>.() -> Unit = {}
     ): RetrofitServiceCore<API>.RetrofitRequester<RESPONSE_DATA> {
+        val builder = ObserveBuilder<RESPONSE_DATA>()
+        builder.init()
         val kClass = RESPONSE_DATA::class
         return observer {
 
             onStart {
+                builder.onStart?.invoke()
                 // 通知开始
                 setWrapperValue<RESPONSE_DATA> {
                     this.kClass = kClass
@@ -40,6 +46,7 @@ open class LiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveDataViewMod
             }
 
             onCancel {
+                builder.onCancel?.invoke()
                 // 通知取消
                 setWrapperValue<RESPONSE_DATA> {
                     this.kClass = kClass
@@ -51,7 +58,8 @@ open class LiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveDataViewMod
 
             onSuccess {
                 val result = this
-                success(result)
+
+                builder.onSuccess?.invoke(result)
                 // 通知成功
                 setWrapperValue<RESPONSE_DATA> {
                     this.kClass = kClass
@@ -64,6 +72,7 @@ open class LiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveDataViewMod
             }
 
             onFailed { code, message ->
+                builder.onFailed?.invoke(code, message)
                 // 通知失败
                 setWrapperValue<RESPONSE_DATA> {
                     this.kClass = kClass
@@ -84,14 +93,20 @@ open class LiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveDataViewMod
 
     }
 
+    /**
+     * 真正发起网络请求&&通知UI前做一些事情
+     */
     @Suppress("UNCHECKED_CAST")
-    inline fun <API, reified ITEM : Any> RetrofitServiceCore<API>.RequesterBuilder<ArrayList<ITEM>>.observeLiveDataWrapperForArrayList(
-        crossinline success: ArrayList<ITEM>?.() -> Unit = {}
+    inline fun <API, reified ITEM : Any> RetrofitServiceCore<API>.RequesterBuilder<ArrayList<ITEM>>.observeWithBeforeNotifyUIForArrayList(
+        crossinline init: ObserveBuilder<ArrayList<ITEM>>.() -> Unit = {}
     ): RetrofitServiceCore<API>.RetrofitRequester<ArrayList<ITEM>> {
+        val builder = ObserveBuilder<ArrayList<ITEM>>()
+        builder.init()
         val kClass = ITEM::class
         return observer {
 
             onStart {
+                builder.onStart?.invoke()
                 // 通知开始
                 setWrapperArrayListValue<ITEM> {
                     this.kClass = kClass
@@ -103,6 +118,7 @@ open class LiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveDataViewMod
             }
 
             onCancel {
+                builder.onCancel?.invoke()
                 // 通知取消
                 setWrapperArrayListValue<ITEM> {
                     this.kClass = kClass
@@ -114,7 +130,8 @@ open class LiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveDataViewMod
 
             onSuccess {
                 val result = this
-                success(result)
+
+                builder.onSuccess?.invoke(result)
                 // 通知成功
                 setWrapperArrayListValue<ITEM> {
                     this.kClass = kClass
@@ -127,6 +144,8 @@ open class LiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveDataViewMod
             }
 
             onFailed { code, message ->
+
+                builder.onFailed?.invoke(code, message)
                 // 通知失败
                 setWrapperArrayListValue<ITEM> {
                     this.kClass = kClass
@@ -146,6 +165,7 @@ open class LiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveDataViewMod
         }
 
     }
+
 //
 //    /**
 //     * 用于一次点击，多次网络请求

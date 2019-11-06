@@ -51,6 +51,12 @@ abstract class RetrofitServiceCore<API> : AbsRetrofitServiceCore<API>(), ISSL {
         return RequesterBuilder<RESPONSE_DATA>().init()
     }
 
+    /**
+     * 新的网络请求器
+     * @param init 初始化网络请求器
+     */
+    fun <T> callArrayList(init: RequesterBuilder<ArrayList<T>>.() -> RetrofitRequester<ArrayList<T>>): RetrofitRequester<ArrayList<T>> = call(init)
+
     @RetrofitServiceDslMarker
     inner class RequesterBuilder<RESPONSE_DATA> {
         private var rxLifecycleObserver: WeakReference<IHttpRetrofitLifecycleObserver?>? = null

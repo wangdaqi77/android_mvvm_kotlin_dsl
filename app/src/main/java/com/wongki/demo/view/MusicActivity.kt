@@ -33,7 +33,7 @@ class MusicActivity : BaseActivity() {
                 kClass = Int::class
                 key = "setTotalCount"
 
-                // 订阅
+                // 订阅，观察数据变动
                 observe {
                     owner = this@MusicActivity
                     onChange {
@@ -48,7 +48,7 @@ class MusicActivity : BaseActivity() {
                 kClass = String::class
                 key = "setResultList"
 
-                // 订阅
+                // 订阅，观察数据变动
                 observe {
                     owner = this@MusicActivity
                     onChange {
@@ -62,7 +62,7 @@ class MusicActivity : BaseActivity() {
             attachWrapperForArrayList<SearchMusic.Item> {
                 kClass = SearchMusic.Item::class
 
-                // 订阅网络请求结果
+                // 订阅，观察网络请求状态和结果
                 observe {
                     owner = this@MusicActivity
                     onStart {
