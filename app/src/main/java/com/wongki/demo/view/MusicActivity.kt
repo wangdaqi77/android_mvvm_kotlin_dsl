@@ -25,7 +25,9 @@ class MusicActivity : BaseActivity() {
 
 
     private fun initViewModel() {
-        // 2.attach的目的就是生成对应的MutableLiveData对象
+        // 1.attach的目的是在对应的ViewModel生成对应的LiveData对象
+        // 2.LiveData会缓存在ViewModel中(有唯一的Key绑定，Key的生成与kClass、key相关)
+        // 3.observe的目的是订阅，观察数据变动
         viewModel<MusicViewModel> {
 
             // 结果总数量
@@ -114,7 +116,7 @@ class MusicActivity : BaseActivity() {
             }
 
             // 搜索音乐
-            viewModel<MusicViewModel>{
+            viewModel<MusicViewModel> {
                 searchMusic(name)
             }
         }
