@@ -1,6 +1,6 @@
 # mvvm_kolin
 
-![mvvm_kolin.png](./assets/mvvm_kotlin.png)
+![demo.png](./assets/demo.png)
 
 ## 例子
 ### 搜索音乐
