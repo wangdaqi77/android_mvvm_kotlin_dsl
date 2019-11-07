@@ -5,8 +5,6 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProviders
 import com.wongki.framework.mvvm.factory.LiveDataViewModelFactory
-import com.wongki.framework.mvvm.lifecycle.LiveDataViewModel
-import java.lang.IllegalArgumentException
 
 /**
  * @author  wangqi

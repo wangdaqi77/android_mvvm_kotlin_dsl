@@ -1,6 +1,7 @@
-package com.wongki.framework.mvvm.lifecycle
+package com.wongki.framework.mvvm.lifecycle.wrap.event
 
 import com.wongki.framework.http.retrofit.observer.HttpCommonObserver
+import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
 
 /**
  * @author  wangqi
@@ -10,7 +11,7 @@ import com.wongki.framework.http.retrofit.observer.HttpCommonObserver
  */
 
 @LiveDataViewModelDslMarker
-open class ObserveBuilder<T> {
+open class EventValueObserveBuilder<T> {
     var onStart: (() -> Unit)? = null
     var onCancel: (() -> Unit)? = null
     var onFailed: ((Int, String) -> Boolean)? = null

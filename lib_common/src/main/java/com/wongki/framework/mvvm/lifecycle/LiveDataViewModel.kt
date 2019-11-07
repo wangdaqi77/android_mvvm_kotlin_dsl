@@ -6,6 +6,7 @@ import com.wongki.framework.http.retrofit.core.RetrofitServiceCore
 import com.wongki.framework.mvvm.event.Event
 import com.wongki.framework.mvvm.lifecycle.wrap.IEventLiveDataViewModel
 import com.wongki.framework.mvvm.lifecycle.wrap.event.EventLiveData
+import com.wongki.framework.mvvm.lifecycle.wrap.event.EventValueObserveBuilder
 import com.wongki.framework.mvvm.remote.retrofit.IRetrofitViewModel
 
 /**
@@ -15,7 +16,8 @@ import com.wongki.framework.mvvm.remote.retrofit.IRetrofitViewModel
  * desc:    .
  */
 @LiveDataViewModelDslMarker
-open class LiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveDataViewModel,
+open class LiveDataViewModel : ViewModel(), IRetrofitViewModel,
+    ILiveDataViewModel,
     IEventLiveDataViewModel {
     val TAG = javaClass.simpleName
     override val mLiveDatas: HashMap<LiveDataKey, MutableLiveData<*>?> = HashMap()
@@ -27,9 +29,10 @@ open class LiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveDataViewMod
      */
     @Suppress("UNCHECKED_CAST")
     inline fun <API, reified RESPONSE_DATA : Any> RetrofitServiceCore<API>.RequesterBuilder<RESPONSE_DATA>.observeWithBeforeNotifyUI(
-        crossinline init: ObserveBuilder<RESPONSE_DATA>.() -> Unit = {}
+        crossinline init: EventValueObserveBuilder<RESPONSE_DATA>.() -> Unit = {}
     ): RetrofitServiceCore<API>.RetrofitRequester<RESPONSE_DATA> {
-        val builder = ObserveBuilder<RESPONSE_DATA>()
+        val builder =
+            EventValueObserveBuilder<RESPONSE_DATA>()
         builder.init()
         val kClass = RESPONSE_DATA::class
         return observer {
@@ -99,9 +102,10 @@ open class LiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveDataViewMod
      */
     @Suppress("UNCHECKED_CAST")
     inline fun <API, reified ITEM : Any> RetrofitServiceCore<API>.RequesterBuilder<ArrayList<ITEM>>.observeWithBeforeNotifyUIForArrayList(
-        crossinline init: ObserveBuilder<ArrayList<ITEM>>.() -> Unit = {}
+        crossinline init: EventValueObserveBuilder<ArrayList<ITEM>>.() -> Unit = {}
     ): RetrofitServiceCore<API>.RetrofitRequester<ArrayList<ITEM>> {
-        val builder = ObserveBuilder<ArrayList<ITEM>>()
+        val builder =
+            EventValueObserveBuilder<ArrayList<ITEM>>()
         builder.init()
         val kClass = ITEM::class
         return observer {
@@ -166,50 +170,6 @@ open class LiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveDataViewMod
         }
 
     }
-
-//
-//    /**
-//     * 用于一次点击，多次网络请求
-//     * @param setStartAction 是否发送Start事件  只有多次网络请求的第一次是需要发送Start事件
-//     * @param finalAttachedKClass 最终订阅的kClass，与attach一一对应 [attachLiveDataWrapper]
-//     * @param success 成功的回调
-//     * @return 请求器[RetrofitServiceCore.RetrofitRequester]
-//     */
-//    @Suppress("UNCHECKED_CAST")
-//    inline fun <reified T : Any, SERVICE, reified RESPONSE_DATA : Any> RetrofitServiceCore<SERVICE>.RequesterBuilder<RESPONSE_DATA>.observeLiveDataWrapperForMulti(
-//        setStartAction: Boolean,
-//        finalAttachedKClass: KClass<T>,
-//        crossinline success: RESPONSE_DATA?.() -> Unit
-//    ): RetrofitServiceCore<SERVICE>.RetrofitRequester<RESPONSE_DATA> {
-//        return observer {
-//
-//            onStart {
-//                if (setStartAction) {
-//                    getLiveDataWrapper(finalAttachedKClass).setValueForAction(Event.START)
-//                }
-//            }
-//
-//            onCancel {
-//                getLiveDataWrapper(finalAttachedKClass).setValueForAction(Event.CANCEL)
-//            }
-//
-//            onSuccess {
-//                success(this)
-//            }
-//
-//            onFailed { code, message ->
-//                val dataWrapper = getLiveDataWrapper(finalAttachedKClass).setValue(Event.FAILED) {
-//                    this.code = code
-//                    this.message = message
-//                }
-//                return@onFailed dataWrapper.errorProcessed
-//            }
-//
-//        }.apply {
-//            lifecycleObserver { this@AbsLiveDataWrapperViewModel }
-//        }
-//    }
-//
 
     override fun onCleared() {
         super.onCleared()

@@ -2,7 +2,6 @@ package com.wongki.framework.mvvm.lifecycle.wrap.event
 
 import androidx.lifecycle.LifecycleOwner
 import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
-import com.wongki.framework.mvvm.lifecycle.ObserveBuilder
 
 /**
  * @author  wangqi
@@ -12,6 +11,6 @@ import com.wongki.framework.mvvm.lifecycle.ObserveBuilder
  */
 
 @LiveDataViewModelDslMarker
-class EventLiveDataObserveBuilder<T>: ObserveBuilder<T>() {
+class EventLiveDataObserveBuilder<T>: EventValueObserveBuilder<T>() {
     lateinit var owner: LifecycleOwner
 }

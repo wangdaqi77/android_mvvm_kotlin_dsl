@@ -81,9 +81,10 @@ abstract class RetrofitServiceCore<API> : AbsRetrofitServiceCore<API>(), ISSL {
          */
         fun observer(init: RetrofitRequesterObserverBuilder<RESPONSE_DATA>.() -> Unit):RetrofitRequester<RESPONSE_DATA> {
             val requesterObserverBuilder = this@RetrofitServiceCore.RetrofitRequesterObserverBuilder<RESPONSE_DATA>()
+            requesterObserverBuilder.init()
+
             val retrofitRequester = this@RetrofitServiceCore.RetrofitRequester<RESPONSE_DATA>()
             retrofitRequester.newRequest(preRequest)
-            requesterObserverBuilder.init()
             retrofitRequester.setRequesterObserver(requesterObserverBuilder)
             retrofitRequester.request()
             return retrofitRequester
