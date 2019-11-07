@@ -1,4 +1,4 @@
-package com.wongki.framework.mvvm
+package com.wongki.framework.mvvm.lifecycle
 
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
@@ -20,6 +20,9 @@ annotation class ViewModelFactoryDslMarker
 inline fun <reified T : ViewModel> FragmentActivity.viewModel(init: T.() -> Unit): T {
     val viewModelJavaClazz = T::class.java
     val viewModel = ViewModelProviders.of(this, LiveDataViewModelFactory).get(viewModelJavaClazz)
+    if (viewModel is LiveDataViewModel) {
+        viewModel.setLifecycleOwner(this)
+    }
     viewModel.init()
     return viewModel
 }
@@ -28,6 +31,9 @@ inline fun <reified T : ViewModel> FragmentActivity.viewModel(init: T.() -> Unit
 inline fun <reified T : ViewModel> Fragment.viewModel(init: T.() -> Unit): T {
     val viewModelJavaClazz = T::class.java
     val viewModel = ViewModelProviders.of(this, LiveDataViewModelFactory).get(viewModelJavaClazz)
+    if (viewModel is LiveDataViewModel) {
+        viewModel.setLifecycleOwner(this)
+    }
     viewModel.init()
     return viewModel
 }

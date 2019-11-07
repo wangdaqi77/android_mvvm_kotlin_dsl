@@ -1,6 +1,7 @@
 package com.wongki.framework.mvvm.lifecycle.wrap
 
 import androidx.lifecycle.LifecycleOwner
+import com.wongki.framework.mvvm.lifecycle.ILifecycleOwnerWrapper
 import com.wongki.framework.mvvm.lifecycle.LiveDataKey
 import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
 import com.wongki.framework.mvvm.lifecycle.exception.AttachedException
@@ -14,9 +15,9 @@ import com.wongki.framework.mvvm.lifecycle.wrap.event.*
  * email:   wangqi7676@163.com
  * desc:    .
  */
-interface IEventLiveDataViewModel {
+interface IEventLiveDataViewModel: ILifecycleOwnerWrapper {
 
-    val mLiveDataWrappers: HashMap<LiveDataKey, EventLiveData<*>?>
+    val mEventLiveDatas: HashMap<LiveDataKey, EventLiveData<*>?>
 
 
     fun <T : Any> EventValueKeyBuilder<T>.transformKeyBuilderFunction(): EventValueKeyBuilder<T>.() -> Unit =
@@ -46,12 +47,12 @@ interface IEventLiveDataViewModel {
         builder.type = EventValueType.Normal
         builder.init()
         val key = getKey<T>(builder.transformKeyBuilderFunction())
-        if (!mLiveDataWrappers.containsKey(key)) {
-            mLiveDataWrappers[key] = builder.build() as EventLiveData<*>
+        if (!mEventLiveDatas.containsKey(key)) {
+            mEventLiveDatas[key] = builder.build() as EventLiveData<*>
         } else {
             throw AttachedException(key)
         }
-        return mLiveDataWrappers[key] as EventLiveData<T>
+        return mEventLiveDatas[key] as EventLiveData<T>
     }
 
     /**
@@ -69,12 +70,12 @@ interface IEventLiveDataViewModel {
             builder.transformKeyBuilderFunction()
         )
 
-        if (!mLiveDataWrappers.containsKey(key)) {
-            mLiveDataWrappers[key] = builder.build() as EventLiveData<*>
+        if (!mEventLiveDatas.containsKey(key)) {
+            mEventLiveDatas[key] = builder.build() as EventLiveData<*>
         } else {
             throw AttachedException(key)
         }
-        return mLiveDataWrappers[key] as EventLiveData<ArrayList<T>>
+        return mEventLiveDatas[key] as EventLiveData<ArrayList<T>>
     }
 
     /**
@@ -86,10 +87,10 @@ interface IEventLiveDataViewModel {
         builder.type = EventValueType.Normal
         builder.init()
         val key = getKey(builder.transformKeyBuilderFunction())
-        if (!mLiveDataWrappers.containsKey(key)) {
+        if (!mEventLiveDatas.containsKey(key)) {
             throw NoAttachException(key)
         }
-        return mLiveDataWrappers[key] as EventLiveData<T>
+        return mEventLiveDatas[key] as EventLiveData<T>
     }
 
     /**
@@ -101,10 +102,10 @@ interface IEventLiveDataViewModel {
         builder.type = EventValueType.ArrayList
         builder.init()
         val key = getKey(builder.transformKeyBuilderFunction())
-        if (!mLiveDataWrappers.containsKey(key)) {
+        if (!mEventLiveDatas.containsKey(key)) {
             throw NoAttachException(key)
         }
-        return mLiveDataWrappers[key] as EventLiveData<ArrayList<T>>
+        return mEventLiveDatas[key] as EventLiveData<ArrayList<T>>
     }
 
 

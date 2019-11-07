@@ -2,12 +2,12 @@ package com.wongki.framework.http.retrofit.core
 
 import android.util.Log
 import com.wongki.framework.http.base.IServiceCore
-import com.wongki.framework.http.lifecycle.HttpLifecycle
-import com.wongki.framework.http.lifecycle.IHttpLifecycleFactory
-import com.wongki.framework.http.lifecycle.IHttpLifecycleOwner
+import com.wongki.framework.http.lifecycle.HttpRequesterManager
+import com.wongki.framework.http.lifecycle.IHttpRequestManagerFactory
+import com.wongki.framework.http.lifecycle.IHttpRequesterManagerOwner
 import com.wongki.framework.http.interceptor.ErrorInterceptorNode
 import com.wongki.framework.http.retrofit.IRetrofit
-import com.wongki.framework.http.retrofit.lifecycle.HttpRetrofitLifecycleHelper
+import com.wongki.framework.http.retrofit.lifecycle.HttpRequesterManagerHelper
 import io.reactivex.Observable
 import io.reactivex.ObservableTransformer
 import okhttp3.OkHttpClient
@@ -27,7 +27,7 @@ import java.lang.reflect.ParameterizedType
 annotation class RetrofitServiceDslMarker
 
 @RetrofitServiceDslMarker
-abstract class AbsRetrofitServiceCore<API> : IServiceCore, IRetrofit<API>, IHttpLifecycleOwner {
+abstract class AbsRetrofitServiceCore<API> : IServiceCore, IRetrofit<API>, IHttpRequesterManagerOwner {
 
     override val mConnectTimeOut: Long = 15_000
     override val mReadTimeOut: Long = 15_000
@@ -63,12 +63,12 @@ abstract class AbsRetrofitServiceCore<API> : IServiceCore, IRetrofit<API>, IHttp
     /**
      * 创建网络请求生命周期管理器
      */
-    private object HttpRetrofitLifecycleFactory : IHttpLifecycleFactory {
-        override fun createLifecycle(): HttpLifecycle {
-            val lifecycle = HttpLifecycle()
+    private object HttpRequestFactory : IHttpRequestManagerFactory {
+        override fun createHttpRequesterManager(): HttpRequesterManager {
+            val httpRequesterManager = HttpRequesterManager()
             // 将生命周期管理器添加到缓存中
-            HttpRetrofitLifecycleHelper.addLifecycle(lifecycle)
-            return lifecycle
+            HttpRequesterManagerHelper.addRequesterManager(httpRequesterManager)
+            return httpRequesterManager
         }
     }
 
@@ -92,22 +92,22 @@ abstract class AbsRetrofitServiceCore<API> : IServiceCore, IRetrofit<API>, IHttp
     /**
      * 生命周期管理器
      */
-    private var mLifecycle: HttpLifecycle? = null
+    private var mLifecycleManager: HttpRequesterManager? = null
 
     /**
      * 获取生命周期管理器
      */
-    final override fun getLifecycle(): HttpLifecycle {
-        if (mLifecycle == null) {
+    final override fun getHttpRequesterManager(): HttpRequesterManager {
+        if (mLifecycleManager == null) {
             synchronized(RetrofitServiceCore::class.java) {
-                if (mLifecycle == null) {
-                    val lifecycle = HttpRetrofitLifecycleFactory.createLifecycle()
-                    mLifecycle = lifecycle
+                if (mLifecycleManager == null) {
+                    val lifecycle = HttpRequestFactory.createHttpRequesterManager()
+                    mLifecycleManager = lifecycle
                 }
             }
         }
 
-        return mLifecycle!!
+        return mLifecycleManager!!
     }
 
 

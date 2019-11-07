@@ -5,7 +5,7 @@ import com.wongki.framework.http.HttpCode
 import com.wongki.framework.http.base.IRequester
 import com.wongki.framework.http.interceptor.ErrorInterceptorNode
 import com.wongki.framework.http.retrofit.converter.GsonConverterFactory
-import com.wongki.framework.http.retrofit.lifecycle.IHttpRetrofitLifecycleObserver
+import com.wongki.framework.http.retrofit.lifecycle.IHttpDestroyedObserver
 import com.wongki.framework.http.retrofit.observer.HttpCommonObserver
 import io.reactivex.Observable
 import io.reactivex.ObservableTransformer
@@ -40,15 +40,15 @@ abstract class RetrofitDownloaderServiceCore<API> : AbsRetrofitServiceCore<API>(
     /**
      * 用于构建网络请求器
      * @param rxLifecycleObserver tag生命周期感知者
-     * @param preRequest retrofit请求
+     * @param api retrofit请求
      */
     fun newRequester(
-        rxLifecycleObserver: IHttpRetrofitLifecycleObserver? = null,
+        rxLifecycleObserver: IHttpDestroyedObserver? = null,
         filePath: String,
-        preRequest: API.() -> Observable<ResponseBody>
+        api: API.() -> Observable<ResponseBody>
     ): RetrofitDownloadRequester {
         val retrofitRequester = RetrofitDownloadRequester()
-        retrofitRequester.newRequester(rxLifecycleObserver, filePath, preRequest)
+        retrofitRequester.newRequester(rxLifecycleObserver, filePath, api)
         return retrofitRequester
     }
 
@@ -57,7 +57,7 @@ abstract class RetrofitDownloaderServiceCore<API> : AbsRetrofitServiceCore<API>(
      * 每次请求都会构建一个retrofit请求器
      */
     open inner class RetrofitDownloadRequester : IRequester {
-        private lateinit var preRequest: API.() -> Observable<ResponseBody>
+        private lateinit var api: API.() -> Observable<ResponseBody>
         /**
          * 拦截处理错误码
          * 优先级：[addErrorInterceptor] > [RetrofitDownloaderServiceCore.selfServiceApiErrorInterceptor] > [Glo.onError]
@@ -88,19 +88,19 @@ abstract class RetrofitDownloaderServiceCore<API> : AbsRetrofitServiceCore<API>(
          */
         private var onFailed: ((Int, String) -> Boolean)? = null
 
-        private var rxLifecycleObserver: WeakReference<IHttpRetrofitLifecycleObserver?>? = null
+        private var lifecycleObserver: WeakReference<IHttpDestroyedObserver?>? = null
         private var mDisposable: WeakReference<Disposable?>? = null
         private lateinit var filePath: String
         fun newRequester(
-            rxLifecycleObserver: IHttpRetrofitLifecycleObserver?,
+            lifecycleObserver: IHttpDestroyedObserver?,
             filePath: String,
             request: (API) -> Observable<ResponseBody>
         ): RetrofitDownloadRequester {
-            rxLifecycleObserver?.let { observer ->
-                this.rxLifecycleObserver = WeakReference(observer)
+            lifecycleObserver?.let { observer ->
+                this.lifecycleObserver = WeakReference(observer)
             }
             this.filePath = filePath
-            this.preRequest = request
+            this.api = request
             return this
         }
 
@@ -159,15 +159,15 @@ abstract class RetrofitDownloaderServiceCore<API> : AbsRetrofitServiceCore<API>(
         override fun request(): RetrofitDownloadRequester {
             // 添加拦截器
             realRequestOnLifecycle(
-                preRequest = preRequest,
+                api = api,
                 composer = applyDefaultSchedulers(filePath),
                 errorInterceptor = errorInterceptorLinked
                     ?: this@RetrofitDownloaderServiceCore.selfServiceApiErrorInterceptor,
                 onStart = { disposable ->
                     this.mDisposable = WeakReference(disposable)
                     //添加请求
-                    rxLifecycleObserver?.get()?.let { tag ->
-                        getLifecycle().addRequester(tag, this@RetrofitDownloadRequester)
+                    lifecycleObserver?.get()?.let { tag ->
+                        getHttpRequesterManager().addRequester(tag, this@RetrofitDownloadRequester)
                     }
                     DownloadInterceptor.syncRequest(this)
                     onStart?.invoke()
@@ -193,8 +193,8 @@ abstract class RetrofitDownloaderServiceCore<API> : AbsRetrofitServiceCore<API>(
         override fun cancel() {
             if (!isCancel()) {
                 getDisposable()?.dispose()
-                rxLifecycleObserver?.get()?.let { tag ->
-                    getLifecycle().removeRequester(tag, this)
+                lifecycleObserver?.get()?.let { tag ->
+                    getHttpRequesterManager().removeRequester(tag, this)
                 }
                 onCancel?.invoke()
             }
@@ -204,8 +204,8 @@ abstract class RetrofitDownloaderServiceCore<API> : AbsRetrofitServiceCore<API>(
          * 通知移除requester缓存
          */
         private fun notifyRemoveRequester() {
-            rxLifecycleObserver?.get()?.let { tag ->
-                getLifecycle().removeRequester(tag, this@RetrofitDownloadRequester)
+            lifecycleObserver?.get()?.let { tag ->
+                getHttpRequesterManager().removeRequester(tag, this@RetrofitDownloadRequester)
             }
         }
 
@@ -408,7 +408,7 @@ abstract class RetrofitDownloaderServiceCore<API> : AbsRetrofitServiceCore<API>(
      * 发送网络请求
      */
     private fun realRequestOnLifecycle(
-        preRequest: API.() -> Observable<ResponseBody>,
+        api: API.() -> Observable<ResponseBody>,
         composer: ObservableTransformer<ResponseBody, InputStream>,
         errorInterceptor: ErrorInterceptorNode? = null,
         onFailed: (Int, String) -> Boolean,
@@ -416,7 +416,7 @@ abstract class RetrofitDownloaderServiceCore<API> : AbsRetrofitServiceCore<API>(
         onStart: (Disposable) -> Unit,
         onComplete: () -> Unit
     ) {
-        request(preRequest, composer)
+        request(api, composer)
             .subscribe(object :
                 HttpCommonObserver<InputStream>(errorInterceptor, onFailed, onSuccess) {
 

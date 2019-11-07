@@ -6,7 +6,7 @@ import com.wongki.framework.http.interceptor.ErrorInterceptorNode
 import com.wongki.framework.http.retrofit.IRetrofitRequester
 import com.wongki.framework.http.retrofit.observer.HttpCommonObserver
 import com.wongki.framework.http.retrofit.converter.GsonConverterFactory
-import com.wongki.framework.http.retrofit.lifecycle.IHttpRetrofitLifecycleObserver
+import com.wongki.framework.http.retrofit.lifecycle.IHttpDestroyedObserver
 import com.wongki.framework.http.ssl.ISSL
 import com.wongki.framework.http.ssl.SSLFactory
 import com.wongki.framework.model.domain.CommonResponse
@@ -33,12 +33,12 @@ abstract class RetrofitServiceCore<API> : AbsRetrofitServiceCore<API>(), ISSL {
 
     /**
      * 创建新的网络请求器
-     * @param preRequest 请求服务器的api接口定义
+     * @param api 请求服务器的api接口定义
      * @param init 初始化网络请求器
      */
-    fun <RESPONSE_DATA> call(preRequest:API.()->Observable<CommonResponse<RESPONSE_DATA>>, init: RequesterBuilder<RESPONSE_DATA>.()-> RetrofitRequester<RESPONSE_DATA>):RetrofitRequester<RESPONSE_DATA>{
+    fun <RESPONSE_DATA> call(api:API.()->Observable<CommonResponse<RESPONSE_DATA>>, init: RequesterBuilder<RESPONSE_DATA>.()-> RetrofitRequester<RESPONSE_DATA>):RetrofitRequester<RESPONSE_DATA>{
         return RequesterBuilder<RESPONSE_DATA>().let{
-            it.api(preRequest)
+            it.api(api)
             it.init()
         }
     }
@@ -59,21 +59,21 @@ abstract class RetrofitServiceCore<API> : AbsRetrofitServiceCore<API>(), ISSL {
 
     @RetrofitServiceDslMarker
     inner class RequesterBuilder<RESPONSE_DATA> {
-        private var rxLifecycleObserver: WeakReference<IHttpRetrofitLifecycleObserver?>? = null
-        private lateinit var preRequest: API.() -> Observable<CommonResponse<RESPONSE_DATA>>
+        private lateinit var lifecycleObserver: WeakReference<IHttpDestroyedObserver?>
+        private lateinit var api: API.() -> Observable<CommonResponse<RESPONSE_DATA>>
 
         /**
          * 生命周期观察期
          */
-        fun lifecycleObserver(lifecycleObserver: () -> IHttpRetrofitLifecycleObserver) {
-            rxLifecycleObserver = WeakReference(lifecycleObserver())
+        fun lifecycleObserver(lifecycleObserver: () -> IHttpDestroyedObserver) {
+            this.lifecycleObserver = WeakReference(lifecycleObserver())
         }
 
         /**
          * api请求
          */
-        fun api(preRequest: API.() -> Observable<CommonResponse<RESPONSE_DATA>>) {
-            this.preRequest = preRequest
+        fun api(api: API.() -> Observable<CommonResponse<RESPONSE_DATA>>) {
+            this.api = api
         }
 
         /**
@@ -84,7 +84,7 @@ abstract class RetrofitServiceCore<API> : AbsRetrofitServiceCore<API>(), ISSL {
             requesterObserverBuilder.init()
 
             val retrofitRequester = this@RetrofitServiceCore.RetrofitRequester<RESPONSE_DATA>()
-            retrofitRequester.newRequest(preRequest)
+            retrofitRequester.newRequest(api)
             retrofitRequester.setRequesterObserver(requesterObserverBuilder)
             retrofitRequester.request()
             return retrofitRequester
@@ -138,7 +138,7 @@ abstract class RetrofitServiceCore<API> : AbsRetrofitServiceCore<API>(), ISSL {
     @RetrofitServiceDslMarker
     inner class RetrofitRequester<RESPONSE_DATA> : IRetrofitRequester<API, RESPONSE_DATA>() {
         private var core = this@RetrofitServiceCore
-        private lateinit var preRequest: API.() -> Observable<CommonResponse<RESPONSE_DATA>>
+        private lateinit var api: API.() -> Observable<CommonResponse<RESPONSE_DATA>>
         /**
          * 错误拦截器链表
          */
@@ -167,16 +167,16 @@ abstract class RetrofitServiceCore<API> : AbsRetrofitServiceCore<API>(), ISSL {
             onSuccess?.invoke(this.result)
         }
         private var composer: ObservableTransformer<CommonResponse<RESPONSE_DATA>, CommonResponse<RESPONSE_DATA>>? = null
-        private var rxLifecycleObserver: WeakReference<IHttpRetrofitLifecycleObserver?>? = null
+        private var lifecycleObserver: WeakReference<IHttpDestroyedObserver?>? = null
         private var mDisposable: WeakReference<Disposable?>? = null
 
         override fun newRequest(request: API.() -> Observable<CommonResponse<RESPONSE_DATA>>): IRetrofitRequester<API, RESPONSE_DATA> {
-            this.preRequest = request
+            this.api = request
             return this
         }
 
-        override fun lifecycleObserver(lifecycleObserver: () -> IHttpRetrofitLifecycleObserver): IRetrofitRequester<API, RESPONSE_DATA> {
-            this.rxLifecycleObserver = WeakReference(lifecycleObserver())
+        override fun lifecycleObserver(lifecycleObserver: () -> IHttpDestroyedObserver): IRetrofitRequester<API, RESPONSE_DATA> {
+            this.lifecycleObserver = WeakReference(lifecycleObserver())
             return this
         }
 
@@ -228,14 +228,14 @@ abstract class RetrofitServiceCore<API> : AbsRetrofitServiceCore<API>(), ISSL {
 
         override fun request(): IRetrofitRequester<API, RESPONSE_DATA> {
             core.realRequest(
-                preRequest = preRequest,
+                api = api,
                 composer = composer ?: RxSchedulers.applyRetrofitHttpDefaultSchedulers(),
                 errorInterceptor = errorInterceptorLinked ?: core.selfServiceApiErrorInterceptor,
                 onStart = { disposable ->
                     this.mDisposable = WeakReference(disposable)
                     //添加请求
-                    rxLifecycleObserver?.get()?.let { tag ->
-                        core.getLifecycle().addRequester(tag, this@RetrofitRequester)
+                    lifecycleObserver?.get()?.let { tag ->
+                        core.getHttpRequesterManager().addRequester(tag, this@RetrofitRequester)
                     }
                     onStart?.invoke()
                 },
@@ -258,8 +258,8 @@ abstract class RetrofitServiceCore<API> : AbsRetrofitServiceCore<API>(), ISSL {
         override fun cancel() {
             if (!isCancel()) {
                 getDisposable()?.dispose()
-                rxLifecycleObserver?.get()?.let { tag ->
-                    core.getLifecycle().removeRequester(tag, this)
+                lifecycleObserver?.get()?.let { tag ->
+                    core.getHttpRequesterManager().removeRequester(tag, this)
                 }
                 onCancel?.invoke()
             }
@@ -267,8 +267,8 @@ abstract class RetrofitServiceCore<API> : AbsRetrofitServiceCore<API>(), ISSL {
 
         private fun notifyRemoveRequester() {
             // 完成remove请求
-            rxLifecycleObserver?.get()?.let { tag ->
-                core.getLifecycle().removeRequester(tag, this@RetrofitRequester)
+            lifecycleObserver?.get()?.let { tag ->
+                core.getHttpRequesterManager().removeRequester(tag, this@RetrofitRequester)
             }
         }
 
@@ -357,7 +357,7 @@ abstract class RetrofitServiceCore<API> : AbsRetrofitServiceCore<API>(), ISSL {
      * 发送网络请求
      */
     private fun <RESPONSE_DATA> realRequest(
-        preRequest: API.() -> Observable<CommonResponse<RESPONSE_DATA>>,
+        api: API.() -> Observable<CommonResponse<RESPONSE_DATA>>,
         composer: ObservableTransformer<CommonResponse<RESPONSE_DATA>, CommonResponse<RESPONSE_DATA>>,
         errorInterceptor: ErrorInterceptorNode? = null,
         onFailed: (Int, String) -> Boolean,
@@ -365,7 +365,7 @@ abstract class RetrofitServiceCore<API> : AbsRetrofitServiceCore<API>(), ISSL {
         onStart: (Disposable) -> Unit,
         onComplete: () -> Unit
     ) {
-        super.request(preRequest, composer)
+        super.request(api, composer)
             .subscribe(object : HttpCommonObserver<CommonResponse<RESPONSE_DATA>>(
                 errorInterceptor,
                 onFailed,

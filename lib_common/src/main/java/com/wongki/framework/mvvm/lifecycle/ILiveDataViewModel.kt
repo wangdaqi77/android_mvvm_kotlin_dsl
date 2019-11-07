@@ -14,7 +14,7 @@ import com.wongki.framework.mvvm.lifecycle.exception.NoAttachException
  * email:   wangqi7676@163.com
  * desc:    .
  */
-interface ILiveDataViewModel{
+interface ILiveDataViewModel:ILifecycleOwnerWrapper{
 
     val mLiveDatas: HashMap<LiveDataKey, MutableLiveData<*>?>
 

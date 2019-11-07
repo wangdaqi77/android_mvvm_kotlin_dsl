@@ -1,5 +1,6 @@
 package com.wongki.framework.mvvm.lifecycle
 
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.wongki.framework.http.retrofit.core.RetrofitServiceCore
@@ -7,7 +8,8 @@ import com.wongki.framework.mvvm.event.Event
 import com.wongki.framework.mvvm.lifecycle.wrap.IEventLiveDataViewModel
 import com.wongki.framework.mvvm.lifecycle.wrap.event.EventLiveData
 import com.wongki.framework.mvvm.lifecycle.wrap.event.EventValueObserveBuilder
-import com.wongki.framework.mvvm.remote.retrofit.IRetrofitViewModel
+import com.wongki.framework.mvvm.remote.retrofit.IRetrofitRepo
+import java.lang.ref.WeakReference
 
 /**
  * @author  wangqi
@@ -16,12 +18,11 @@ import com.wongki.framework.mvvm.remote.retrofit.IRetrofitViewModel
  * desc:    .
  */
 @LiveDataViewModelDslMarker
-open class LiveDataViewModel : ViewModel(), IRetrofitViewModel,
-    ILiveDataViewModel,
-    IEventLiveDataViewModel {
+open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataViewModel, IRetrofitRepo, ILifecycleOwnerWrapper {
     val TAG = javaClass.simpleName
     override val mLiveDatas: HashMap<LiveDataKey, MutableLiveData<*>?> = HashMap()
-    override val mLiveDataWrappers: HashMap<LiveDataKey, EventLiveData<*>?> = HashMap()
+    override val mEventLiveDatas: HashMap<LiveDataKey, EventLiveData<*>?> = HashMap()
+    internal lateinit var lifecycleOwnerRef: WeakReference<LifecycleOwner?>
 
 
     /**
@@ -31,8 +32,8 @@ open class LiveDataViewModel : ViewModel(), IRetrofitViewModel,
     inline fun <API, reified RESPONSE_DATA : Any> RetrofitServiceCore<API>.RequesterBuilder<RESPONSE_DATA>.observeWithBeforeNotifyUI(
         crossinline init: EventValueObserveBuilder<RESPONSE_DATA>.() -> Unit = {}
     ): RetrofitServiceCore<API>.RetrofitRequester<RESPONSE_DATA> {
-        val builder =
-            EventValueObserveBuilder<RESPONSE_DATA>()
+        lifecycleObserver { this@LiveDataViewModel }
+        val builder = EventValueObserveBuilder<RESPONSE_DATA>()
         builder.init()
         val kClass = RESPONSE_DATA::class
         return observer {
@@ -170,6 +171,14 @@ open class LiveDataViewModel : ViewModel(), IRetrofitViewModel,
         }
 
     }
+
+
+    fun setLifecycleOwner(lifecycleOwner: LifecycleOwner) {
+        this.lifecycleOwnerRef = WeakReference(lifecycleOwner)
+
+    }
+
+    override fun getLifecycleOwner(): LifecycleOwner? = lifecycleOwnerRef.get()
 
     override fun onCleared() {
         super.onCleared()

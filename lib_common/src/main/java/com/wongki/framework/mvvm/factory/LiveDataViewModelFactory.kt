@@ -17,7 +17,6 @@ object LiveDataViewModelFactory: ViewModelProvider.NewInstanceFactory() {
         if (!LiveDataViewModel::class.java.isAssignableFrom(modelClass) ){
             throw ViewModelNoMatchedException(modelClass)
         }
-
         return super.create(modelClass)
     }
 
