@@ -14,8 +14,11 @@ viewModel<MusicViewModel> {
 
     // 结果总数量
     attach<Int> {
-        kClass = Int::class
-        key = "setTotalCount"
+    
+        key{
+            kClass = Int::class
+            method = "setTotalCount"
+        }
 
         // 订阅，观察数据变动
         observe {
@@ -29,8 +32,11 @@ viewModel<MusicViewModel> {
     
     // 结果总数量
     attach<String> {
-        kClass = String::class
-        key = "setResultList"
+    
+        key{
+            kClass = String::class
+            method = "setResultList"
+        }
 
         // 订阅，观察数据变动
         observe {
@@ -45,7 +51,10 @@ viewModel<MusicViewModel> {
     // 搜索音乐
     attachWrapperForArrayList<SearchMusic.Item> {
     
-        kClass = SearchMusic.Item::class
+        key{
+            kClass = SearchMusic.Item::class
+        }
+        
         // 订阅，观察网络请求状态和结果
         observe {
             owner = this@MainActivity
@@ -106,8 +115,10 @@ class MusicViewModel : LiveDataViewModel() {
     private fun setTotalCount(list: ArrayList<SearchMusic.Item>?) {
         // 通知订阅的地方
         setValue<Int> {
-            kClass = Int::class
-            key = "setTotalCount"
+            key{
+                kClass = Int::class
+                method = "setTotalCount"
+            }
             value { list?.size }
         }
 
@@ -126,8 +137,10 @@ class MusicViewModel : LiveDataViewModel() {
 
         // 通知订阅的地方
         setValue<String> {
-            kClass = String::class
-            key = "setResultList"
+            key{
+                kClass = String::class
+                method = "setResultList"
+            }
             value { result }
         }
 
