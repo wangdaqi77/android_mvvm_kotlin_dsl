@@ -1,4 +1,4 @@
-package com.wongki.framework.mvvm.lifecycle.wrap
+package com.wongki.framework.mvvm.lifecycle.wrap.event
 
 import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
 
@@ -11,5 +11,5 @@ import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
 
 
 @LiveDataViewModelDslMarker
-class LiveDataWrapperArrayListGetterValueBuilder<T : Any> : WrapperKeyBuilder<T>() {
+class EventLiveDataArrayListGetterBuilder<T : Any> : EventValueKeyBuilder<T>() {
 }

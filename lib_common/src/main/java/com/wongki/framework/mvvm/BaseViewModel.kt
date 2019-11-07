@@ -3,7 +3,7 @@ package com.wongki.framework.mvvm
 import com.wongki.framework.mvvm.lifecycle.ILiveDataViewModel
 import com.wongki.framework.mvvm.lifecycle.LiveDataViewModel
 import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
-import com.wongki.framework.mvvm.lifecycle.wrap.ILiveDataWrapperViewModel
+import com.wongki.framework.mvvm.lifecycle.wrap.IEventLiveDataViewModel
 import com.wongki.framework.mvvm.remote.retrofit.IRetrofitViewModel
 
 /**
@@ -14,7 +14,7 @@ import com.wongki.framework.mvvm.remote.retrofit.IRetrofitViewModel
  */
 @LiveDataViewModelDslMarker
 abstract class BaseViewModel private constructor(liveDataViewModel: LiveDataViewModel):
-    ILiveDataWrapperViewModel,IRetrofitViewModel,ILiveDataViewModel by liveDataViewModel {
+    IEventLiveDataViewModel,IRetrofitViewModel,ILiveDataViewModel by liveDataViewModel {
     constructor():this(LiveDataViewModel())
 
 }

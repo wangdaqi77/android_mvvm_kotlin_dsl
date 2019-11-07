@@ -1,18 +1,22 @@
 package com.wongki.demo.view
 
 import android.os.Bundle
+import androidx.lifecycle.LifecycleObserver
 import com.google.android.material.snackbar.Snackbar
 import com.wongki.demo.R
 import com.wongki.demo.model.bean.SearchMusic
 import com.wongki.demo.vm.MusicViewModel
 import com.wongki.framework.base.BaseActivity
+import com.wongki.framework.debug.printClassInfo
 import com.wongki.framework.extensions.dialogDismiss
 import com.wongki.framework.extensions.showLoadingDialog
-import com.wongki.framework.extensions.toast
+import com.wongki.framework.logging.KL
+import com.wongki.framework.model.domain.CommonResponse
 import com.wongki.framework.mvvm.viewModel
 
 import kotlinx.android.synthetic.main.activity_music.*
 import kotlinx.android.synthetic.main.content_main.*
+import kotlin.reflect.jvm.jvmName
 
 class MusicActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -21,6 +25,15 @@ class MusicActivity : BaseActivity() {
 
         initViewModel()
         initView()
+
+        val arrayList = ArrayList<ArrayList<SearchMusic.Item>>()
+        arrayList.printClassInfo()
+
+        lifecycle.addObserver(
+            object :LifecycleObserver{
+
+            }
+        )
     }
 
 

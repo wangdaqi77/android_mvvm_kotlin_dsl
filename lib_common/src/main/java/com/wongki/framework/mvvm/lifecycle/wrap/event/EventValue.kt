@@ -1,6 +1,6 @@
-package com.wongki.framework.mvvm.lifecycle.wrap
+package com.wongki.framework.mvvm.lifecycle.wrap.event
 
-import com.wongki.framework.mvvm.action.EventAction
+import com.wongki.framework.mvvm.event.Event
 import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
 
 /**
@@ -11,8 +11,8 @@ import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
  *          数据包装类
  */
 @LiveDataViewModelDslMarker
-open class ValueWrapper<T> {
-    var action: EventAction = EventAction.DEFAULT
+open class EventValue<T> {
+    var event: Event = Event.DEFAULT
     var data: T? = null // 真正的数据
     var code: Int = -1 // 错误码
     var message: String = "" // 错误信息

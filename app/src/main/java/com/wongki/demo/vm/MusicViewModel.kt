@@ -4,6 +4,7 @@ import com.wongki.demo.model.remote.musicService
 import com.wongki.demo.model.bean.SearchMusic
 import com.wongki.framework.mvvm.lifecycle.LiveDataViewModel
 import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
+import com.wongki.framework.mvvm.lifecycle.setter.VMSetter
 
 /**
  * @author  wangqi
@@ -55,6 +56,7 @@ class MusicViewModel : LiveDataViewModel() {
     }
 
     // 设置结果列表
+//    @VMSetter<String>
     private fun setResultList(list: ArrayList<SearchMusic.Item>?) {
         var result = ""
         list?.apply {

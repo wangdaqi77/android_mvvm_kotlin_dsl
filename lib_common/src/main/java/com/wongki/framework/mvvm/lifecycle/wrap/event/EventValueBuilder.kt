@@ -1,6 +1,6 @@
-package com.wongki.framework.mvvm.lifecycle.wrap
+package com.wongki.framework.mvvm.lifecycle.wrap.event
 
-import com.wongki.framework.mvvm.action.EventAction
+import com.wongki.framework.mvvm.event.Event
 import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
 
 /**
@@ -10,15 +10,15 @@ import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
  * desc:
  */
 @LiveDataViewModelDslMarker
-open class ValueWrapperBuilder<T> {
-    var action: EventAction = EventAction.DEFAULT
+open class EventValueBuilder<T> {
+    var event: Event = Event.DEFAULT
     var data: T? = null // 真正的数据
     var code: Int = -1 // 错误码
     var message: String = "" // 错误信息
 
-    fun  build():ValueWrapper<T>{
-        val dataWrapper = ValueWrapper<T>()
-        dataWrapper.action = action
+    fun  build(): EventValue<T> {
+        val dataWrapper = EventValue<T>()
+        dataWrapper.event = event
         dataWrapper.data = data
         dataWrapper.code = code
         dataWrapper.message = message

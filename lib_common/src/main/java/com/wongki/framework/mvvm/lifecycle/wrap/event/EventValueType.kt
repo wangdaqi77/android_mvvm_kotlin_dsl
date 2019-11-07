@@ -1,4 +1,4 @@
-package com.wongki.framework.mvvm.lifecycle.wrap
+package com.wongki.framework.mvvm.lifecycle.wrap.event
 
 /**
  * @author  wangqi
@@ -6,7 +6,7 @@ package com.wongki.framework.mvvm.lifecycle.wrap
  * email:   wangqi7676@163.com
  * desc:    .
  */
-enum class ValueWrapperType {
+enum class EventValueType {
     Normal,
     ArrayList
 }

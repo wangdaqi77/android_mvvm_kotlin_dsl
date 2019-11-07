@@ -1,4 +1,4 @@
-package com.wongki.framework.mvvm.lifecycle.wrap
+package com.wongki.framework.mvvm.lifecycle.wrap.event
 
 import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
 import com.wongki.framework.mvvm.lifecycle.exception.NoSetValueException
@@ -10,18 +10,20 @@ import com.wongki.framework.mvvm.lifecycle.exception.NoSetValueException
  * desc:    .
  */
 @LiveDataViewModelDslMarker
-class LiveDataWrapperArrayListSetterValueBuilder<T : Any> : WrapperKeyBuilder<T>() {
+class EventLiveDataSetterBuilder<T : Any> : EventValueKeyBuilder<T>() {
+
     private var setValueCount = 0
-    internal var value:ValueWrapper<ArrayList<T>>? = null
+    internal var value: EventValue<T>? = null
         set(value) {
             setValueCount++
-            type = ValueWrapperType.ArrayList
+            type = EventValueType.Normal
             field = value
         }
 
 
-    fun value(init: ValueWrapperBuilder<ArrayList<T>>.()->Unit) {
-        val dataWrapperBuilder = ValueWrapperBuilder<ArrayList<T>>()
+    fun value(init: EventValueBuilder<T>.()->Unit) {
+        val dataWrapperBuilder =
+            EventValueBuilder<T>()
         dataWrapperBuilder.init()
         this.value = dataWrapperBuilder.build()
     }

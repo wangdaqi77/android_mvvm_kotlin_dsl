@@ -1,4 +1,4 @@
-package com.wongki.framework.mvvm.lifecycle.wrap
+package com.wongki.framework.mvvm.lifecycle.wrap.event
 
 import com.wongki.framework.mvvm.lifecycle.LiveDataKeyBuilder
 import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
@@ -10,16 +10,16 @@ import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
  * desc:    .
  */
 @LiveDataViewModelDslMarker
-open class WrapperKeyBuilder<T : Any> : LiveDataKeyBuilder<T>() {
-    internal lateinit var type: ValueWrapperType
+open class EventValueKeyBuilder<T : Any> : LiveDataKeyBuilder<T>() {
+    internal lateinit var type: EventValueType
 
     /**
      * TODO 可以优化，key存在过就用之前的
      */
-    override fun buildKey() = WrapperKey().apply {
+    override fun buildKey() = EventValueKey().apply {
         key =
             super.buildKey().key +
-                    "-${this@WrapperKeyBuilder.type.name}"
+                    "-${this@EventValueKeyBuilder.type.name}"
     }
 
 }

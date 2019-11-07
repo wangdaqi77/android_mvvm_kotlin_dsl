@@ -3,8 +3,9 @@ package com.wongki.framework.mvvm.lifecycle
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.wongki.framework.http.retrofit.core.RetrofitServiceCore
-import com.wongki.framework.mvvm.action.EventAction
-import com.wongki.framework.mvvm.lifecycle.wrap.*
+import com.wongki.framework.mvvm.event.Event
+import com.wongki.framework.mvvm.lifecycle.wrap.IEventLiveDataViewModel
+import com.wongki.framework.mvvm.lifecycle.wrap.event.EventLiveData
 import com.wongki.framework.mvvm.remote.retrofit.IRetrofitViewModel
 
 /**
@@ -15,10 +16,10 @@ import com.wongki.framework.mvvm.remote.retrofit.IRetrofitViewModel
  */
 @LiveDataViewModelDslMarker
 open class LiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveDataViewModel,
-    ILiveDataWrapperViewModel {
+    IEventLiveDataViewModel {
     val TAG = javaClass.simpleName
     override val mLiveDatas: HashMap<LiveDataKey, MutableLiveData<*>?> = HashMap()
-    override val mLiveDataWrappers: HashMap<LiveDataKey, LiveDataWrapper<*>?> = HashMap()
+    override val mLiveDataWrappers: HashMap<LiveDataKey, EventLiveData<*>?> = HashMap()
 
 
     /**
@@ -40,7 +41,7 @@ open class LiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveDataViewMod
                     this.kClass = kClass
 
                     value {
-                        action = EventAction.START
+                        event = Event.START
                     }
                 }
             }
@@ -51,7 +52,7 @@ open class LiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveDataViewMod
                 setWrapperValue<RESPONSE_DATA> {
                     this.kClass = kClass
                     value {
-                        action = EventAction.CANCEL
+                        event = Event.CANCEL
                     }
                 }
             }
@@ -64,7 +65,7 @@ open class LiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveDataViewMod
                 setWrapperValue<RESPONSE_DATA> {
                     this.kClass = kClass
                     value {
-                        action = EventAction.SUCCESS
+                        event = Event.SUCCESS
                         data = result
                     }
                 }
@@ -77,7 +78,7 @@ open class LiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveDataViewMod
                 setWrapperValue<RESPONSE_DATA> {
                     this.kClass = kClass
                     value {
-                        action = EventAction.FAILED
+                        event = Event.FAILED
                         this.code = code
                         this.message = message
                     }
@@ -112,7 +113,7 @@ open class LiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveDataViewMod
                     this.kClass = kClass
 
                     value {
-                        action = EventAction.START
+                        event = Event.START
                     }
                 }
             }
@@ -123,7 +124,7 @@ open class LiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveDataViewMod
                 setWrapperArrayListValue<ITEM> {
                     this.kClass = kClass
                     value {
-                        action = EventAction.CANCEL
+                        event = Event.CANCEL
                     }
                 }
             }
@@ -136,7 +137,7 @@ open class LiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveDataViewMod
                 setWrapperArrayListValue<ITEM> {
                     this.kClass = kClass
                     value {
-                        action = EventAction.SUCCESS
+                        event = Event.SUCCESS
                         data = result
                     }
                 }
@@ -150,7 +151,7 @@ open class LiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveDataViewMod
                 setWrapperArrayListValue<ITEM> {
                     this.kClass = kClass
                     value {
-                        action = EventAction.FAILED
+                        event = Event.FAILED
                         this.code = code
                         this.message = message
                     }
@@ -184,12 +185,12 @@ open class LiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveDataViewMod
 //
 //            onStart {
 //                if (setStartAction) {
-//                    getLiveDataWrapper(finalAttachedKClass).setValueForAction(EventAction.START)
+//                    getLiveDataWrapper(finalAttachedKClass).setValueForAction(Event.START)
 //                }
 //            }
 //
 //            onCancel {
-//                getLiveDataWrapper(finalAttachedKClass).setValueForAction(EventAction.CANCEL)
+//                getLiveDataWrapper(finalAttachedKClass).setValueForAction(Event.CANCEL)
 //            }
 //
 //            onSuccess {
@@ -197,7 +198,7 @@ open class LiveDataViewModel : ViewModel(), IRetrofitViewModel, ILiveDataViewMod
 //            }
 //
 //            onFailed { code, message ->
-//                val dataWrapper = getLiveDataWrapper(finalAttachedKClass).setValue(EventAction.FAILED) {
+//                val dataWrapper = getLiveDataWrapper(finalAttachedKClass).setValue(Event.FAILED) {
 //                    this.code = code
 //                    this.message = message
 //                }

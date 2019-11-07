@@ -1,4 +1,4 @@
-package com.wongki.framework.mvvm.action
+package com.wongki.framework.mvvm.event
 
 /**
  * @author  wangqi
@@ -6,7 +6,7 @@ package com.wongki.framework.mvvm.action
  * email:   wangqi7676@163.com
  * desc:    .
  */
-enum class EventAction {
+enum class Event {
     DEFAULT, // 默认值，没有用途
     START, //开始
     CANCEL,//取消
