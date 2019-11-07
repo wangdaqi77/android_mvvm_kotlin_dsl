@@ -62,7 +62,7 @@ class EventLiveData<T> : MutableLiveData<EventValue<T>>() {
                         observeBuilder.onCancel?.invoke()
                     }
                     Event.SUCCESS -> {
-                        observeBuilder.onSuccess?.invoke(result.data)
+                        observeBuilder.onSuccess?.invoke(result.value)
                     }
                     Event.FAILED -> {
                         val errorProcessed =

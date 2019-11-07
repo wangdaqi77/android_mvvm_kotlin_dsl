@@ -13,8 +13,8 @@ import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
 @LiveDataViewModelDslMarker
 open class EventValue<T> {
     var event: Event = Event.DEFAULT
-    var data: T? = null // 真正的数据
+    var value: T? = null // 真正的数据
     var code: Int = -1 // 错误码
     var message: String = "" // 错误信息
-    var errorProcessed = false //失败已经处理
+    var errorProcessed = false //失败是否处理
 }

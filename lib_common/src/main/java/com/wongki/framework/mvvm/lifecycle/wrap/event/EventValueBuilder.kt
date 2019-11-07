@@ -19,7 +19,7 @@ open class EventValueBuilder<T> {
     fun  build(): EventValue<T> {
         val dataWrapper = EventValue<T>()
         dataWrapper.event = event
-        dataWrapper.data = data
+        dataWrapper.value = data
         dataWrapper.code = code
         dataWrapper.message = message
         return dataWrapper
