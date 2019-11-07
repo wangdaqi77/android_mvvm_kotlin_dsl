@@ -3,6 +3,7 @@ package com.wongki.framework.mvvm.lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelStore
 import com.wongki.framework.http.retrofit.core.RetrofitServiceCore
 import com.wongki.framework.mvvm.event.Event
 import com.wongki.framework.mvvm.lifecycle.wrap.IEventLiveDataViewModel
@@ -15,7 +16,7 @@ import java.lang.ref.WeakReference
  * @author  wangqi
  * date:    2019-11-05
  * email:   wangqi7676@163.com
- * desc:    .
+ *
  */
 @LiveDataViewModelDslMarker
 open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataViewModel, IRetrofitRepo, ILifecycleOwnerWrapper {
@@ -37,13 +38,13 @@ open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataVi
         builder.init()
         val kClass = RESPONSE_DATA::class
         return observer {
-
             onStart {
                 builder.onStart?.invoke()
                 // 通知开始
-                setWrapperValue<RESPONSE_DATA> {
-                    this.kClass = kClass
-
+                setEventValue<RESPONSE_DATA> {
+                    key {
+                        this.kClass = kClass
+                    }
                     value {
                         event = Event.START
                     }
@@ -53,8 +54,10 @@ open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataVi
             onCancel {
                 builder.onCancel?.invoke()
                 // 通知取消
-                setWrapperValue<RESPONSE_DATA> {
-                    this.kClass = kClass
+                setEventValue<RESPONSE_DATA> {
+                    key {
+                        this.kClass = kClass
+                    }
                     value {
                         event = Event.CANCEL
                     }
@@ -66,8 +69,10 @@ open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataVi
 
                 builder.onSuccess?.invoke(result)
                 // 通知成功
-                setWrapperValue<RESPONSE_DATA> {
-                    this.kClass = kClass
+                setEventValue<RESPONSE_DATA> {
+                    key {
+                        this.kClass = kClass
+                    }
                     value {
                         event = Event.SUCCESS
                         data = result
@@ -79,8 +84,10 @@ open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataVi
             onFailed { code, message ->
                 builder.onFailed?.invoke(code, message)
                 // 通知失败
-                setWrapperValue<RESPONSE_DATA> {
-                    this.kClass = kClass
+                setEventValue<RESPONSE_DATA> {
+                    key {
+                        this.kClass = kClass
+                    }
                     value {
                         event = Event.FAILED
                         this.code = code
@@ -88,8 +95,10 @@ open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataVi
                     }
                 }
 
-                return@onFailed getWrapperValue<RESPONSE_DATA> {
-                    this.kClass = kClass
+                return@onFailed getEventValue<RESPONSE_DATA> {
+                    key {
+                        this.kClass = kClass
+                    }
                 }?.errorProcessed ?: false
             }
         }.apply {
@@ -105,8 +114,8 @@ open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataVi
     inline fun <API, reified ITEM : Any> RetrofitServiceCore<API>.RequesterBuilder<ArrayList<ITEM>>.observeWithBeforeNotifyUIForArrayList(
         crossinline init: EventValueObserveBuilder<ArrayList<ITEM>>.() -> Unit = {}
     ): RetrofitServiceCore<API>.RetrofitRequester<ArrayList<ITEM>> {
-        val builder =
-            EventValueObserveBuilder<ArrayList<ITEM>>()
+        lifecycleObserver { this@LiveDataViewModel }
+        val builder = EventValueObserveBuilder<ArrayList<ITEM>>()
         builder.init()
         val kClass = ITEM::class
         return observer {
@@ -114,8 +123,10 @@ open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataVi
             onStart {
                 builder.onStart?.invoke()
                 // 通知开始
-                setWrapperArrayListValue<ITEM> {
-                    this.kClass = kClass
+                setEventValueForArrayList<ITEM> {
+                    key {
+                        this.kClass = kClass
+                    }
 
                     value {
                         event = Event.START
@@ -126,8 +137,10 @@ open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataVi
             onCancel {
                 builder.onCancel?.invoke()
                 // 通知取消
-                setWrapperArrayListValue<ITEM> {
-                    this.kClass = kClass
+                setEventValueForArrayList<ITEM> {
+                    key {
+                        this.kClass = kClass
+                    }
                     value {
                         event = Event.CANCEL
                     }
@@ -139,8 +152,10 @@ open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataVi
 
                 builder.onSuccess?.invoke(result)
                 // 通知成功
-                setWrapperArrayListValue<ITEM> {
-                    this.kClass = kClass
+                setEventValueForArrayList<ITEM> {
+                    key {
+                        this.kClass = kClass
+                    }
                     value {
                         event = Event.SUCCESS
                         data = result
@@ -153,8 +168,10 @@ open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataVi
 
                 builder.onFailed?.invoke(code, message)
                 // 通知失败
-                setWrapperArrayListValue<ITEM> {
-                    this.kClass = kClass
+                setEventValueForArrayList<ITEM> {
+                    key {
+                        this.kClass = kClass
+                    }
                     value {
                         event = Event.FAILED
                         this.code = code
@@ -162,8 +179,10 @@ open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataVi
                     }
                 }
 
-                return@onFailed getWrapperArrayListValue<ITEM> {
-                    this.kClass = kClass
+                return@onFailed getEventValueForArrayList<ITEM> {
+                    key {
+                        this.kClass = kClass
+                    }
                 }?.errorProcessed ?: false
             }
         }.apply {
@@ -180,6 +199,9 @@ open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataVi
 
     override fun getLifecycleOwner(): LifecycleOwner? = lifecycleOwnerRef.get()
 
+    /**
+     * 无需担心网络请求造成的内存泄漏 {@link[ViewModelStore.clear]}
+     */
     override fun onCleared() {
         super.onCleared()
         onDestroy()

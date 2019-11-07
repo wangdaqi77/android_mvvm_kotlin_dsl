@@ -10,25 +10,26 @@ import com.wongki.framework.mvvm.lifecycle.exception.NoSetValueException
  * desc:    .
  */
 @LiveDataViewModelDslMarker
-class EventLiveDataSetterBuilder<T : Any> : EventValueKeyBuilder<T>() {
+class EventLiveDataSetterBuilder<T : Any> : EventValueKeyBuilderWrapper<T>() {
+    init {
+        type = EventValueType.Normal
+    }
 
     private var setValueCount = 0
     internal var value: EventValue<T>? = null
         set(value) {
             setValueCount++
-            type = EventValueType.Normal
             field = value
         }
 
 
     fun value(init: EventValueBuilder<T>.()->Unit) {
-        val dataWrapperBuilder =
-            EventValueBuilder<T>()
+        val dataWrapperBuilder = EventValueBuilder<T>()
         dataWrapperBuilder.init()
         this.value = dataWrapperBuilder.build()
     }
 
     internal fun check() {
-        if (setValueCount == 0) throw NoSetValueException(buildKey())
+        if (setValueCount == 0) throw NoSetValueException(getKey())
     }
 }

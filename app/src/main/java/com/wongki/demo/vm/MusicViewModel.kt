@@ -2,7 +2,6 @@ package com.wongki.demo.vm
 
 import com.wongki.demo.model.remote.musicService
 import com.wongki.demo.model.bean.SearchMusic
-import com.wongki.framework.http.retrofit.lifecycle.IHttpDestroyedObserver
 import com.wongki.framework.mvvm.lifecycle.LiveDataViewModel
 import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
 
@@ -46,8 +45,11 @@ class MusicViewModel : LiveDataViewModel() {
 
         // 通知订阅的地方
         setValue<Int> {
-            kClass = Int::class
-            key = "setTotalCount"
+            key {
+                kClass = Int::class
+                method = "setTotalCount"
+            }
+
             value {
                 list?.size
             }
@@ -69,8 +71,10 @@ class MusicViewModel : LiveDataViewModel() {
 
         // 通知订阅的地方
         setValue<String> {
-            kClass = String::class
-            key = "setResultList"
+            key {
+                kClass = String::class
+                method = "setResultList"
+            }
             value { result }
         }
 

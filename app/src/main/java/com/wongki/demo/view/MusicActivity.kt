@@ -1,13 +1,11 @@
 package com.wongki.demo.view
 
 import android.os.Bundle
-import androidx.lifecycle.LifecycleObserver
 import com.google.android.material.snackbar.Snackbar
 import com.wongki.demo.R
 import com.wongki.demo.model.bean.SearchMusic
 import com.wongki.demo.vm.MusicViewModel
 import com.wongki.framework.base.BaseActivity
-import com.wongki.framework.debug.printClassInfo
 import com.wongki.framework.extensions.dialogDismiss
 import com.wongki.framework.extensions.showLoadingDialog
 import com.wongki.framework.mvvm.lifecycle.viewModel
@@ -22,15 +20,6 @@ class MusicActivity : BaseActivity() {
 
         initViewModel()
         initView()
-
-        val arrayList = ArrayList<ArrayList<SearchMusic.Item>>()
-        arrayList.printClassInfo()
-
-        lifecycle.addObserver(
-            object :LifecycleObserver{
-
-            }
-        )
     }
 
 
@@ -41,9 +30,12 @@ class MusicActivity : BaseActivity() {
         viewModel<MusicViewModel> {
 
             // 结果总数量
-            attach<Int> {
-                kClass = Int::class
-                key = "setTotalCount"
+            attachObserve<Int> {
+
+                key {
+                    kClass = Int::class
+                    method = "setTotalCount"
+                }
 
                 // 订阅，观察数据变动
                 observe {
@@ -56,9 +48,11 @@ class MusicActivity : BaseActivity() {
 
 
             // 结果总数量
-            attach<String> {
-                kClass = String::class
-                key = "setResultList"
+            attachObserve<String> {
+                key {
+                    kClass = String::class
+                    method = "setResultList"
+                }
 
                 // 订阅，观察数据变动
                 observe {
@@ -71,8 +65,11 @@ class MusicActivity : BaseActivity() {
 
 
             // 搜索音乐结果
-            attachWrapperForArrayList<SearchMusic.Item> {
-                kClass = SearchMusic.Item::class
+            attachEventObserveForArrayList<SearchMusic.Item> {
+
+                key {
+                    kClass = SearchMusic.Item::class
+                }
 
                 // 订阅，观察网络请求状态和结果
                 observe {

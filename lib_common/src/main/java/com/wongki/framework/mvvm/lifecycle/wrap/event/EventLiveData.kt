@@ -47,26 +47,23 @@ class EventLiveData<T> : MutableLiveData<EventValue<T>>() {
     /**
      * 订阅，接收数据变化的事件通知
      */
-    fun observe(init: EventLiveDataObserveBuilder<T>.() -> Unit) {
-        val observeBuilder =
-            EventLiveDataObserveBuilder<T>()
-        observeBuilder.init()
-        super.observe(observeBuilder.owner, Observer<EventValue<T>> { result ->
+    fun observe(owner: LifecycleOwner, builder: EventValueObserveBuilder<T>) {
+        super.observe(owner, Observer<EventValue<T>> { result ->
             if (result != null) {
                 val action = result.event
                 when (action) {
                     Event.START -> {
-                        observeBuilder.onStart?.invoke()
+                        builder.onStart?.invoke()
                     }
                     Event.CANCEL -> {
-                        observeBuilder.onCancel?.invoke()
+                        builder.onCancel?.invoke()
                     }
                     Event.SUCCESS -> {
-                        observeBuilder.onSuccess?.invoke(result.value)
+                        builder.onSuccess?.invoke(result.value)
                     }
                     Event.FAILED -> {
                         val errorProcessed =
-                            observeBuilder.onFailed?.invoke(result.code, result.message)
+                            builder.onFailed?.invoke(result.code, result.message)
                         result.errorProcessed = errorProcessed ?: false
                     }
                     else -> {
@@ -77,8 +74,6 @@ class EventLiveData<T> : MutableLiveData<EventValue<T>>() {
 
         })
     }
-
-
 
 
 }

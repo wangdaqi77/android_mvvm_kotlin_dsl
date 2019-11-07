@@ -11,5 +11,8 @@ import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
 
 
 @LiveDataViewModelDslMarker
-class EventLiveDataGetterBuilder<T : Any> : EventValueKeyBuilder<T>() {
+class EventLiveDataGetterBuilder<T : Any> : EventValueKeyBuilderWrapper<T>() {
+    init {
+        type = EventValueType.Normal
+    }
 }

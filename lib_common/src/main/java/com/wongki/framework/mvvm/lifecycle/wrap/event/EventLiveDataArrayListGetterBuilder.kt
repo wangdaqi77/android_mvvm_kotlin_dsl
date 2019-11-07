@@ -11,5 +11,8 @@ import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
 
 
 @LiveDataViewModelDslMarker
-class EventLiveDataArrayListGetterBuilder<T : Any> : EventValueKeyBuilder<T>() {
+class EventLiveDataArrayListGetterBuilder<T : Any> : EventValueKeyBuilderWrapper<T>() {
+    init {
+        type = EventValueType.ArrayList
+    }
 }

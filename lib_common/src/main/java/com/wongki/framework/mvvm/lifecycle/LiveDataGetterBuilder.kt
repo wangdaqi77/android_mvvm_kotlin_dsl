@@ -9,5 +9,5 @@ package com.wongki.framework.mvvm.lifecycle
 
 
 @LiveDataViewModelDslMarker
-open class LiveDataGetterValueBuilder<T : Any> : LiveDataKeyBuilder<T>() {
+open class LiveDataGetterBuilder<T : Any> : LiveDataKeyBuilderWrapper<T>() {
 }

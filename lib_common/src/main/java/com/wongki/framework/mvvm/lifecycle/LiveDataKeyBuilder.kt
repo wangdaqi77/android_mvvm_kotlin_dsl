@@ -15,11 +15,11 @@ open class LiveDataKeyBuilder<T : Any> {
         internal const val EMPTY_KEY = ""
     }
 
-    var key: String = EMPTY_KEY
+    var method: String = EMPTY_KEY
     lateinit var kClass: KClass<T>
 
     internal fun checkKey(){
-        if (key != EMPTY_KEY){
+        if (method != EMPTY_KEY){
             throw RejectSetException("LiveDataKeyBuilder\$key")
         }
     }
@@ -29,7 +29,7 @@ open class LiveDataKeyBuilder<T : Any> {
      */
     open fun buildKey() = LiveDataKey().apply {
         key =
-            "${this@LiveDataKeyBuilder.kClass.qualifiedName}-${this@LiveDataKeyBuilder.key}"
+            "${this@LiveDataKeyBuilder.kClass.qualifiedName}-${this@LiveDataKeyBuilder.method}"
     }
 
 }
