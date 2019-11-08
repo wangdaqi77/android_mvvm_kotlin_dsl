@@ -23,8 +23,10 @@ class MusicViewModel : LiveDataViewModel() {
 
                 api { searchMusic(name = name) }
 
-                // 真正发起网络请求&&通知UI前做一些事情（ex：设置结果总数和设置结果列表）
-                observeWithBeforeNotifyUIForArrayList {
+                // 真正发起网络请求
+                // &&服务器返回结果转换成EventObserver
+                // &&在通知UI前观察Event（ex：在通知UI成功前设置结果总数和设置结果列表）
+                requestAndTransformEventObserveAndReceiveBeforeNotifyUIForArrayList {
 
                     onSuccess{
                         // 设置结果总数

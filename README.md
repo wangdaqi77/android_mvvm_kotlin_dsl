@@ -1,8 +1,6 @@
-# android_mvvm_kotlin_dsl
-## 介绍
-``
-淡化了LiveData、Lifecycle的存在，dsl style便于阅读
-``
+# 淡化了LiveData、Lifecycle的存在，dsl style便于阅读
+
+## 使用
 ### View - 装载订阅
 ```kotlin
 viewModel<XXViewModel> {
@@ -32,8 +30,8 @@ fun setUserName(name:String) {
 
 }
 ```
-## API说明
 
+## API说明
 ### 一、装载订阅
 #### 1.[LiveDataViewModel.attachObserve]常规无状态，使用参考上面的例子
 #### 2.[LiveDataViewModel.attachEventObserve]异步场景有状态[EventValue.event]
@@ -41,8 +39,8 @@ fun setUserName(name:String) {
 
 ### 二、设置值
 #### 1.[LiveDataViewModel.setValue]常规无状态，使用参考上面的例子
-#### 2.[LiveDataViewModel.setEventValue]异步场景有状态，具体使用可参考[LiveDataViewModel.observeWithBeforeNotifyUI]
-#### 3.[LiveDataViewModel.setEventValueForArrayList]异步场景ArrayList有状态，具体使用可参考[LiveDataViewModel.observeWithBeforeNotifyUIForArrayList]
+#### 2.[LiveDataViewModel.setEventValue]异步场景有状态，具体使用可参考[LiveDataViewModel.requestAndTransformEventObserveAndReceiveBeforeNotifyUI]
+#### 3.[LiveDataViewModel.setEventValueForArrayList]异步场景ArrayList有状态，具体使用可参考[LiveDataViewModel.requestAndTransformEventObserveAndReceiveBeforeNotifyUIForArrayList]
 
 ### 三、获取值(参考设置值)
 #### 1.[LiveDataViewModel.getValue]常规无状态
@@ -50,18 +48,22 @@ fun setUserName(name:String) {
 #### 3.[LiveDataViewModel.getEventValueForArrayList]异步场景ArrayList有状态
 
 ```
-装载订阅(attachObserve)时生命周期的提供者默认值为创建ViewModel时的LifecycleOwner对象，详情请查看[FragmentActivity.viewModel]和[Fragment.viewModel]的拓展函数,以及[ILiveDataViewModel.attachObserve]等装载订阅函数，如果你需要为LiveData提供其他的LifecycleOwner，那么需要在装载订阅时覆盖掉默认值
+装载订阅(attachObserve)时生命周期的提供者默认值为创建ViewModel时的LifecycleOwner对象，
+详情请查看[FragmentActivity.viewModel]和[Fragment.viewModel]的拓展函数,以及
+[ILiveDataViewModel.attachObserve]等装载订阅函数，如果你需要为LiveData提供其他的
+LifecycleOwner，那么需要在装载订阅时覆盖掉默认值
+viewModel<XXViewModel> {
     attachObserve {
         key {...}
         observe {
             owner = LifecycleOwner
         }
     }
+}
 ```
 
 ## 例子
 ### 搜索音乐
-
 ![demo.png](./assets/demo.png)
 
 #### 1.生成LiveData并订阅
@@ -148,8 +150,10 @@ class MusicViewModel : LiveDataViewModel() {
 
             callArrayList<SearchMusic.Item> {
                 api { searchMusic(name = name) }
-                // 真正发起网络请求&&通知UI前做一些事情（ex：设置搜索结果总数和设置结果列表）
-                observeWithBeforeNotifyUIForArrayList {
+                // 真正发起网络请求
+                // &&服务器返回结果转换成EventObserver
+                // &&在通知UI前观察Event（ex：在通知UI成功前设置结果总数和设置结果列表）
+                requestAndTransformEventObserveAndReceiveBeforeNotifyUIForArrayList {
                     onSuccess{
                         // 设置搜索结果总数
                         this@MusicViewModel.setTotalCount(this)

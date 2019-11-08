@@ -60,9 +60,9 @@ import java.lang.ref.WeakReference
  * 二、设置值
  * 1.[LiveDataViewModel.setValue]常规无状态，使用参考上面的例子
  * 2.[LiveDataViewModel.setEventValue]异步场景有状态，
- * 具体使用可参考[LiveDataViewModel.observeWithBeforeNotifyUI]
+ * 具体使用可参考[LiveDataViewModel.requestAndTransformEventObserveAndReceiveBeforeNotifyUI]
  * 3.[LiveDataViewModel.setEventValueForArrayList]异步场景ArrayList有状态，
- * 具体使用可参考[LiveDataViewModel.observeWithBeforeNotifyUIForArrayList]
+ * 具体使用可参考[LiveDataViewModel.requestAndTransformEventObserveAndReceiveBeforeNotifyUIForArrayList]
  *
  * 三、获取值(参考设置值)
  * 1.[LiveDataViewModel.getValue]常规无状态
@@ -215,10 +215,12 @@ open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataVi
 
 
     /**
-     * 真正发起网络请求&&通知UI前做一些事情&&通知UI更新数据
+     * 真正发起网络请求
+     * &&服务器返回结果转换成EventObserver
+     * &&在通知UI前观察Event
      */
     @Suppress("UNCHECKED_CAST")
-    inline fun <API, reified RESPONSE_DATA : Any> RetrofitServiceCore<API>.RequesterBuilder<RESPONSE_DATA>.observeWithBeforeNotifyUI(
+    inline fun <API, reified RESPONSE_DATA : Any> RetrofitServiceCore<API>.RequesterBuilder<RESPONSE_DATA>.requestAndTransformEventObserveAndReceiveBeforeNotifyUI(
         crossinline init: EventValueObserveBuilder<RESPONSE_DATA>.() -> Unit = {}
     ): RetrofitServiceCore<API>.RetrofitRequester<RESPONSE_DATA> {
         lifecycleObserver { this@LiveDataViewModel }
@@ -296,10 +298,12 @@ open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataVi
     }
 
     /**
-     * 真正发起网络请求&&通知UI前做一些事情&&通知UI更新数据
+     * 真正发起网络请求
+     * &&服务器返回结果转换成EventObserver
+     * &&在通知UI前观察Event
      */
     @Suppress("UNCHECKED_CAST")
-    inline fun <API, reified ITEM : Any> RetrofitServiceCore<API>.RequesterBuilder<ArrayList<ITEM>>.observeWithBeforeNotifyUIForArrayList(
+    inline fun <API, reified ITEM : Any> RetrofitServiceCore<API>.RequesterBuilder<ArrayList<ITEM>>.requestAndTransformEventObserveAndReceiveBeforeNotifyUIForArrayList(
         crossinline init: EventValueObserveBuilder<ArrayList<ITEM>>.() -> Unit = {}
     ): RetrofitServiceCore<API>.RetrofitRequester<ArrayList<ITEM>> {
         lifecycleObserver { this@LiveDataViewModel }
