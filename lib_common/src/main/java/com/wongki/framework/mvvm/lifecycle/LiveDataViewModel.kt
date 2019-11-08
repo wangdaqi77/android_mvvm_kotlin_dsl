@@ -72,7 +72,7 @@ open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataVi
         builder.init()
         if (!builder.keyBuilder.check()) {
             throw DslRejectedException(
-                "attachObserve<${T::class.simpleName}>", "key", "method = ?"
+                "setValue<${T::class.simpleName}>", "key", "method = ?"
             )
         }
         return super.setValue(builder)
@@ -86,7 +86,7 @@ open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataVi
         builder.init()
         if (!builder.keyBuilder.check()) {
             throw DslRejectedException(
-                "attachObserve<${T::class.simpleName}>", "key", "method = ?"
+                "getValue<${T::class.simpleName}>", "key", "method = ?"
             )
         }
         return super.getValue(builder)
