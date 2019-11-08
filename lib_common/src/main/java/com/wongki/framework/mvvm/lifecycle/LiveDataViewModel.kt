@@ -1,5 +1,7 @@
 package com.wongki.framework.mvvm.lifecycle
 
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -16,6 +18,68 @@ import java.lang.ref.WeakReference
  * @author  wangqi
  * date:    2019-11-05
  * email:   wangqi7676@163.com
+ *
+ * 淡化了LiveData、Lifecycle的存在，dsl style便于阅读
+ *
+ *
+ * View - 装载订阅
+ *
+ *  viewModel<XXViewModel> {
+ *      attachObserve<String> {
+ *          key {
+ *              method = "setUserName"
+ *          }
+ *          observe {
+ *              onChange {tv_user_name.text = "$this"} // 更新UI
+ *          }
+ *  }
+ *
+ *      attachObserve<XX> {
+ *          // ...
+ *      }
+ *  }
+
+ * ViewModel - 设置、更新数据
+ *
+ *  fun setUserName(name:String) {
+ *      setValue<String> {
+ *      key {
+ *          method = "setUserName"
+ *      }
+ *          value { name } // 通知订阅的地方
+ *      }
+ *  }
+ *
+ * API说明
+ *
+ * 一、装载订阅
+ * 1.[LiveDataViewModel.attachObserve]常规无状态，使用参考上面的例子
+ * 2.[LiveDataViewModel.attachEventObserve]异步场景有状态[EventValue.event]
+ * 3.[LiveDataViewModel.attachEventObserveForArrayList]异步场景有状态
+ *
+ * 二、设置值
+ * 1.[LiveDataViewModel.setValue]常规无状态，使用参考上面的例子
+ * 2.[LiveDataViewModel.setEventValue]异步场景有状态，
+ * 具体使用可参考[LiveDataViewModel.observeWithBeforeNotifyUI]
+ * 3.[LiveDataViewModel.setEventValueForArrayList]异步场景ArrayList有状态，
+ * 具体使用可参考[LiveDataViewModel.observeWithBeforeNotifyUIForArrayList]
+ *
+ * 三、获取值(参考设置值)
+ * 1.[LiveDataViewModel.getValue]常规无状态
+ * 2.[LiveDataViewModel.getEventValue]异步场景有状态
+ * 3.[LiveDataViewModel.getEventValueForArrayList]异步场景ArrayList有状态
+ *  
+ *  注意：
+ *  装载订阅时生命周期的提供者默认值为创建ViewModel时的LifecycleOwner对象，
+ *  详情请查看[FragmentActivity.viewModel]和[Fragment.viewModel]的拓展函数,
+ *  以及[ILiveDataViewModel.attachObserve]等装载订阅函数，如果你需要为LiveData
+ *  提供其他的LifecycleOwner，那么需要在装载订阅时覆盖掉默认值
+ *      attachObserve {
+ *          key {...}
+ *          observe {
+ *              owner = LifecycleOwner
+ *          }
+ *      }
  *
  */
 @LiveDataViewModelDslMarker
@@ -151,7 +215,7 @@ open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataVi
 
 
     /**
-     * 真正发起网络请求&&通知UI前做一些事情
+     * 真正发起网络请求&&通知UI前做一些事情&&通知UI更新数据
      */
     @Suppress("UNCHECKED_CAST")
     inline fun <API, reified RESPONSE_DATA : Any> RetrofitServiceCore<API>.RequesterBuilder<RESPONSE_DATA>.observeWithBeforeNotifyUI(
@@ -232,7 +296,7 @@ open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataVi
     }
 
     /**
-     * 真正发起网络请求&&通知UI前做一些事情
+     * 真正发起网络请求&&通知UI前做一些事情&&通知UI更新数据
      */
     @Suppress("UNCHECKED_CAST")
     inline fun <API, reified ITEM : Any> RetrofitServiceCore<API>.RequesterBuilder<ArrayList<ITEM>>.observeWithBeforeNotifyUIForArrayList(

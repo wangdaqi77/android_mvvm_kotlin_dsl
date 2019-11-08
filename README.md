@@ -1,9 +1,68 @@
 # android_mvvm_kotlin_dsl
+## 介绍
+``
+淡化了LiveData、Lifecycle的存在，dsl style便于阅读
+``
+### View - 装载订阅
+```kotlin
+viewModel<XXViewModel> {
+    attachObserve<String> {
+        key {
+            method = "setUserName"
+        }
+        observe {
+            onChange {tv_user_name.text = "$this"} // 更新UI
+        }
+    }
+    
+    attachObserve<XX> {
+        // ...
+    }
+}
+```
+### ViewModel - 设置、更新数据
+```kotlin
+fun setUserName(name:String) {
+    setValue<String> {
+        key {
+            method = "setUserName"
+        }
+        value { name }
+    }
 
-![demo.png](./assets/demo.png)
+}
+```
+## API说明
+
+### 一、装载订阅
+#### 1.[LiveDataViewModel.attachObserve]常规无状态，使用参考上面的例子
+#### 2.[LiveDataViewModel.attachEventObserve]异步场景有状态[EventValue.event]
+#### 3.[LiveDataViewModel.attachEventObserveForArrayList]异步场景有状态
+
+### 二、设置值
+#### 1.[LiveDataViewModel.setValue]常规无状态，使用参考上面的例子
+#### 2.[LiveDataViewModel.setEventValue]异步场景有状态，具体使用可参考[LiveDataViewModel.observeWithBeforeNotifyUI]
+#### 3.[LiveDataViewModel.setEventValueForArrayList]异步场景ArrayList有状态，具体使用可参考[LiveDataViewModel.observeWithBeforeNotifyUIForArrayList]
+
+### 三、获取值(参考设置值)
+#### 1.[LiveDataViewModel.getValue]常规无状态
+#### 2.[LiveDataViewModel.getEventValue]异步场景有状态
+#### 3.[LiveDataViewModel.getEventValueForArrayList]异步场景ArrayList有状态
+
+```
+装载订阅(attachObserve)时生命周期的提供者默认值为创建ViewModel时的LifecycleOwner对象，详情请查看[FragmentActivity.viewModel]和[Fragment.viewModel]的拓展函数,以及[ILiveDataViewModel.attachObserve]等装载订阅函数，如果你需要为LiveData提供其他的LifecycleOwner，那么需要在装载订阅时覆盖掉默认值
+    attachObserve {
+        key {...}
+        observe {
+            owner = LifecycleOwner
+        }
+    }
+```
 
 ## 例子
 ### 搜索音乐
+
+![demo.png](./assets/demo.png)
 
 #### 1.生成LiveData并订阅
 ```kotlin
