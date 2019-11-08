@@ -1,6 +1,7 @@
-# 淡化了LiveData、Lifecycle的存在，dsl style便于阅读
+# android_mvvm_kotlin_dsl
+## 淡化了LiveData、Lifecycle的存在，dsl style便于阅读
 
-## 使用
+## 使用简单2步
 ### View - 装载订阅
 ```kotlin
 viewModel<XXViewModel> {
@@ -46,12 +47,9 @@ fun setUserName(name:String) {
 #### 1.[LiveDataViewModel.getValue]常规无状态
 #### 2.[LiveDataViewModel.getEventValue]异步场景有状态
 #### 3.[LiveDataViewModel.getEventValueForArrayList]异步场景ArrayList有状态
+装载订阅(attachObserve)时生命周期的提供者默认值为创建ViewModel时的LifecycleOwner对象，详情请查看[FragmentActivity.viewModel]和[Fragment.viewModel]的拓展函数,以及[ILiveDataViewModel.attachObserve]等装载订阅函数，如果你需要为LiveData提供其他的LifecycleOwner，那么需要在装载订阅时覆盖掉默认值
 
 ```
-装载订阅(attachObserve)时生命周期的提供者默认值为创建ViewModel时的LifecycleOwner对象，
-详情请查看[FragmentActivity.viewModel]和[Fragment.viewModel]的拓展函数,以及
-[ILiveDataViewModel.attachObserve]等装载订阅函数，如果你需要为LiveData提供其他的
-LifecycleOwner，那么需要在装载订阅时覆盖掉默认值
 viewModel<XXViewModel> {
     attachObserve {
         key {...}
