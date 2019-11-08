@@ -168,7 +168,7 @@ class MusicViewModel : LiveDataViewModel() {
     
     // 设置搜索结果总数
     private fun setTotalCount(list: ArrayList<SearchMusic.Item>?) {
-        // 通知订阅的地方
+        // 更新数据，通知订阅的位置
         setValue<Int> {
             key{
                 method = "setTotalCount"
@@ -189,7 +189,7 @@ class MusicViewModel : LiveDataViewModel() {
 
         if (result.isEmpty()) result = "暂无结果"
 
-        // 通知订阅的地方
+        // 更新数据，通知订阅的位置
         setValue<String> {
             key{
                 method = "setResultList"
