@@ -1,8 +1,8 @@
 # android_mvvm_kotlin_dsl
 ## 淡化了LiveData、Lifecycle的存在，dsl style便于阅读
 
-## 使用简单2步
-### View - 装载订阅
+### 简单2步完成订阅和更新数据
+#### View - 装载订阅
 ```kotlin
 viewModel<XXViewModel> {
     attachObserve<String> {
@@ -19,7 +19,7 @@ viewModel<XXViewModel> {
     }
 }
 ```
-### ViewModel - 设置、更新数据
+#### ViewModel - 设置、更新数据
 ```kotlin
 fun setUserName(name:String) {
     setValue<String> {
