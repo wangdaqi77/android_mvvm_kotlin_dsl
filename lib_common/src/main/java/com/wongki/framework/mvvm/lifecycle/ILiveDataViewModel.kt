@@ -20,9 +20,7 @@ interface ILiveDataViewModel : ILifecycleOwnerWrapper {
 
 
     @Suppress("UNCHECKED_CAST")
-    fun <T : Any> attachObserve(init: LiveDataBuilder<T>.() -> Unit): MutableLiveData<T> {
-        val builder = LiveDataBuilder<T>()
-        builder.init()
+    fun <T : Any> attachObserve(builder: LiveDataBuilder<T>): MutableLiveData<T> {
         val key = builder.getKey()
         if (!mLiveDatas.containsKey(key)) {
             mLiveDatas[key] = builder.build()
@@ -42,7 +40,7 @@ interface ILiveDataViewModel : ILifecycleOwnerWrapper {
      * 获取子live data
      */
     @Suppress("UNCHECKED_CAST")
-    private fun <T : Any> getLiveData(builder: LiveDataKeyBuilder<T>): MutableLiveData<T> {
+    private fun <T : Any> getLiveData(builder: LiveDataKeyBuilder): MutableLiveData<T> {
         val key = builder.buildKey()
         if (!mLiveDatas.containsKey(key)) {
             throw NoAttachException(key)
@@ -54,9 +52,7 @@ interface ILiveDataViewModel : ILifecycleOwnerWrapper {
     /**
      * 设置数据
      */
-    fun <T : Any> setValue(init: LiveDataSetterBuilder<T>.() -> Unit) {
-        val liveDataSetterValueBuilder = LiveDataSetterBuilder<T>()
-        liveDataSetterValueBuilder.init()
+    fun <T : Any> setValue(liveDataSetterValueBuilder: LiveDataSetterBuilder<T>) {
         liveDataSetterValueBuilder.check()
         getLiveData<T>(liveDataSetterValueBuilder.keyBuilder).value =
             liveDataSetterValueBuilder.value
@@ -65,17 +61,15 @@ interface ILiveDataViewModel : ILifecycleOwnerWrapper {
     /**
      * 获取key
      */
-    fun <T : Any> getValue(init: LiveDataGetterBuilder<T>.() -> Unit): T? {
-        val liveDataGetterValueBuilder = LiveDataGetterBuilder<T>()
-        liveDataGetterValueBuilder.init()
+    fun <T : Any> getValue(liveDataGetterValueBuilder: LiveDataGetterBuilder<T>): T? {
         return getLiveData<T>(liveDataGetterValueBuilder.keyBuilder).value
     }
 
 
     @LiveDataViewModelDslMarker
-    class LiveDataBuilder<T : Any> : LiveDataKeyBuilderWrapper<T>() {
-        internal var defaultOwner: LifecycleOwner? = null
-        private lateinit var observerBuilder: ObserveBuilder<T>
+    class LiveDataBuilder<T : Any> : DslLiveDataKeyBuilder() {
+        var defaultOwner: LifecycleOwner? = null
+        private var observerBuilder: ObserveBuilder<T>? = null
         fun observe(init: ObserveBuilder<T>.() -> Unit) {
             val builder = ObserveBuilder<T>()
             builder.init()
@@ -86,9 +80,10 @@ interface ILiveDataViewModel : ILifecycleOwnerWrapper {
             return MutableLiveData()
         }
 
-        internal fun MutableLiveData<T>.observe() {
-            val builder = this@LiveDataBuilder.observerBuilder
-            val lifecycleOwner = builder.owner ?: defaultOwner ?: throw NoSetLifecycleOwnerException(getKey())
+        fun MutableLiveData<T>.observe() {
+            val builder = this@LiveDataBuilder.observerBuilder ?: return
+            val lifecycleOwner =
+                builder.owner ?: defaultOwner ?: throw NoSetLifecycleOwnerException(getKey())
             observe(lifecycleOwner,
                 Observer<T> { t -> builder.onChange?.invoke(t) })
         }

@@ -10,7 +10,7 @@ import com.wongki.framework.mvvm.lifecycle.exception.NoSetValueException
  * desc:    .
  */
 @LiveDataViewModelDslMarker
-class EventLiveDataArrayListSetterBuilder<T : Any> : EventValueKeyBuilderWrapper<T>() {
+class EventLiveDataArrayListSetterBuilder<T : Any> : DslEventValueKeyBuilder() {
     init {
         type = EventValueType.ArrayList
     }

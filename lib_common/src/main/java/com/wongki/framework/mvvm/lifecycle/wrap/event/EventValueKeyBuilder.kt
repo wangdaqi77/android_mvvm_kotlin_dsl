@@ -1,7 +1,9 @@
 package com.wongki.framework.mvvm.lifecycle.wrap.event
 
-import com.wongki.framework.mvvm.lifecycle.LiveDataKeyBuilder
+import com.wongki.framework.mvvm.lifecycle.ILiveDataKeyBuilder
 import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
+import com.wongki.framework.mvvm.lifecycle.exception.DslRejectedException
+import kotlin.reflect.KClass
 
 /**
  * @author  wangqi
@@ -10,16 +12,19 @@ import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
  * desc:    .
  */
 @LiveDataViewModelDslMarker
-open class EventValueKeyBuilder<T : Any> : LiveDataKeyBuilder<T>() {
-    internal lateinit var type: EventValueType
+open class EventValueKeyBuilder : ILiveDataKeyBuilder<EventValueKey> {
+    companion object {
+        internal val DEFAULT = EventValueKeyBuilder::class
+    }
 
-    /**
-     * TODO 可以优化，key存在过就用之前的
-     */
+    internal lateinit var type: EventValueType
+    var kClass: KClass<*> = DEFAULT
+
+    override fun check(): Boolean = kClass != DEFAULT
+
     override fun buildKey() = EventValueKey().apply {
         key =
-            super.buildKey().key +
-                    "-${this@EventValueKeyBuilder.type.name}"
+            "${this@EventValueKeyBuilder.type.name}-${this@EventValueKeyBuilder.kClass.qualifiedName}"
     }
 
 }

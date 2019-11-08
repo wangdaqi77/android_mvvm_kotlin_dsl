@@ -33,7 +33,6 @@ class MusicActivity : BaseActivity() {
             attachObserve<Int> {
 
                 key {
-                    kClass = Int::class
                     method = "setTotalCount"
                 }
 
@@ -50,7 +49,6 @@ class MusicActivity : BaseActivity() {
             // 结果总数量
             attachObserve<String> {
                 key {
-                    kClass = String::class
                     method = "setResultList"
                 }
 
@@ -66,10 +64,6 @@ class MusicActivity : BaseActivity() {
 
             // 搜索音乐结果
             attachEventObserveForArrayList<SearchMusic.Item> {
-
-                key {
-                    kClass = SearchMusic.Item::class
-                }
 
                 // 订阅，观察网络请求状态和结果
                 observe {

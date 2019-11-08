@@ -6,8 +6,8 @@ package com.wongki.framework.mvvm.lifecycle
  * email:   wangqi7676@163.com
  * desc:    .
  */
-
-
 @LiveDataViewModelDslMarker
-open class LiveDataGetterBuilder<T : Any> : DslLiveDataKeyBuilder() {
+interface ILiveDataKeyBuilder<KEY : LiveDataKey> {
+    fun check():Boolean
+    fun buildKey():KEY
 }

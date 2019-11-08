@@ -46,7 +46,6 @@ class MusicViewModel : LiveDataViewModel() {
         // 通知订阅的地方
         setValue<Int> {
             key {
-                kClass = Int::class
                 method = "setTotalCount"
             }
 
@@ -72,7 +71,6 @@ class MusicViewModel : LiveDataViewModel() {
         // 通知订阅的地方
         setValue<String> {
             key {
-                kClass = String::class
                 method = "setResultList"
             }
             value { result }

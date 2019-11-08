@@ -1,7 +1,5 @@
 package com.wongki.framework.mvvm.lifecycle
 
-import com.wongki.framework.mvvm.lifecycle.exception.RejectSetException
-import kotlin.reflect.KClass
 
 /**
  * @author  wangqi
@@ -10,26 +8,21 @@ import kotlin.reflect.KClass
  * desc:    .
  */
 @LiveDataViewModelDslMarker
-open class LiveDataKeyBuilder<T : Any> {
+open class LiveDataKeyBuilder : ILiveDataKeyBuilder<LiveDataKey> {
     companion object {
-        internal const val EMPTY_KEY = ""
+        internal const val DEFAULT = ""
     }
 
-    var method: String = EMPTY_KEY
-    lateinit var kClass: KClass<T>
+    var method: String = DEFAULT
 
-    internal fun checkKey(){
-        if (method != EMPTY_KEY){
-            throw RejectSetException("LiveDataKeyBuilder\$key")
-        }
-    }
-
+    override fun check():Boolean = method != DEFAULT
     /**
      * TODO 可以优化，key存在过就用之前的
      */
-    open fun buildKey() = LiveDataKey().apply {
-        key =
-            "${this@LiveDataKeyBuilder.kClass.qualifiedName}-${this@LiveDataKeyBuilder.method}"
+    override fun buildKey():LiveDataKey {
+        return LiveDataKey().apply {
+            key = this@LiveDataKeyBuilder.method
+        }
     }
 
 }

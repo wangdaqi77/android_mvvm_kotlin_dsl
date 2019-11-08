@@ -9,7 +9,7 @@ import com.wongki.framework.mvvm.lifecycle.exception.NoSetValueException
  * desc:    .
  */
 @LiveDataViewModelDslMarker
-open class LiveDataSetterBuilder<T : Any> : LiveDataKeyBuilderWrapper<T>() {
+open class LiveDataSetterBuilder<T : Any> : DslLiveDataKeyBuilder() {
     private var setValueCount = 0
     internal var value: T? = null
         set(value) {

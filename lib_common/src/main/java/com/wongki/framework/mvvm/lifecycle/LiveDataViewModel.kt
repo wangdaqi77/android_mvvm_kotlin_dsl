@@ -6,9 +6,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelStore
 import com.wongki.framework.http.retrofit.core.RetrofitServiceCore
 import com.wongki.framework.mvvm.event.Event
+import com.wongki.framework.mvvm.lifecycle.exception.DslRejectedException
 import com.wongki.framework.mvvm.lifecycle.wrap.IEventLiveDataViewModel
-import com.wongki.framework.mvvm.lifecycle.wrap.event.EventLiveData
-import com.wongki.framework.mvvm.lifecycle.wrap.event.EventValueObserveBuilder
+import com.wongki.framework.mvvm.lifecycle.wrap.event.*
 import com.wongki.framework.mvvm.remote.retrofit.IRetrofitRepo
 import java.lang.ref.WeakReference
 
@@ -19,11 +19,135 @@ import java.lang.ref.WeakReference
  *
  */
 @LiveDataViewModelDslMarker
-open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataViewModel, IRetrofitRepo, ILifecycleOwnerWrapper {
+open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataViewModel,
+    IRetrofitRepo, ILifecycleOwnerWrapper {
     val TAG = javaClass.simpleName
     override val mLiveDatas: HashMap<LiveDataKey, MutableLiveData<*>?> = HashMap()
     override val mEventLiveDatas: HashMap<LiveDataKey, EventLiveData<*>?> = HashMap()
     internal lateinit var lifecycleOwnerRef: WeakReference<LifecycleOwner?>
+
+    @Suppress("UNCHECKED_CAST")
+    inline fun <reified T : Any> attachObserve(init: ILiveDataViewModel.LiveDataBuilder<T>.() -> Unit): MutableLiveData<T> {
+        val builder = ILiveDataViewModel.LiveDataBuilder<T>()
+        builder.init()
+        if (!builder.keyBuilder.check()) {
+            throw DslRejectedException(
+                "attachObserve<${T::class.simpleName}>", "key", "method = ?"
+            )
+        }
+        return super.attachObserve(builder)
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    inline fun <reified T : Any> attachEventObserve(init: IEventLiveDataViewModel.EventLiveDataBuilder<T>.() -> Unit): EventLiveData<T> {
+        val builder = IEventLiveDataViewModel.EventLiveDataBuilder<T>()
+        builder.init()
+        builder.keyBuilder.kClass = T::class
+        if (!builder.keyBuilder.check()) {
+            throw DslRejectedException(
+                "attachEventObserve<${T::class.simpleName}>", "key", "kClass = ?"
+            )
+        }
+        return super.attachEventObserve(builder)
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    inline fun <reified ITEM : Any> attachEventObserveForArrayList(init: IEventLiveDataViewModel.EventLiveDataArrayListBuilder<ITEM>.() -> Unit): EventLiveData<ArrayList<ITEM>> {
+        val builder = IEventLiveDataViewModel.EventLiveDataArrayListBuilder<ITEM>()
+        builder.init()
+        builder.keyBuilder.kClass = ITEM::class
+        if (!builder.keyBuilder.check()) {
+            throw DslRejectedException(
+                "attachEventObserveForArrayList<${ITEM::class.simpleName}>", "key", "kClass = ?"
+            )
+        }
+        return super.attachEventObserveForArrayList(builder)
+    }
+
+    /**
+     * 设置数据
+     */
+    inline fun <reified T : Any> setValue(init: LiveDataSetterBuilder<T>.() -> Unit) {
+        val builder = LiveDataSetterBuilder<T>()
+        builder.init()
+        if (!builder.keyBuilder.check()) {
+            throw DslRejectedException(
+                "attachObserve<${T::class.simpleName}>", "key", "method = ?"
+            )
+        }
+        return super.setValue(builder)
+    }
+
+    /**
+     * 获取key
+     */
+    inline fun <reified T : Any> getValue(init: LiveDataGetterBuilder<T>.() -> Unit): T? {
+        val builder = LiveDataGetterBuilder<T>()
+        builder.init()
+        if (!builder.keyBuilder.check()) {
+            throw DslRejectedException(
+                "attachObserve<${T::class.simpleName}>", "key", "method = ?"
+            )
+        }
+        return super.getValue(builder)
+    }
+
+
+    /**
+     * 获取key
+     */
+    inline fun <reified T : Any> setEventValue(init: EventLiveDataSetterBuilder<T>.() -> Unit) {
+        val builder = EventLiveDataSetterBuilder<T>()
+        builder.init()
+        if (!builder.keyBuilder.check()) {
+            throw DslRejectedException(
+                "setEventValue<${T::class.simpleName}>", "key", "method = ?"
+            )
+        }
+        return super.setEventValue(builder)
+    }
+
+    /**
+     * 获取key
+     */
+    inline fun <reified ITEM : Any> setEventValueForArrayList(init: EventLiveDataArrayListSetterBuilder<ITEM>.() -> Unit) {
+        val builder = EventLiveDataArrayListSetterBuilder<ITEM>()
+        builder.init()
+        if (!builder.keyBuilder.check()) {
+            throw DslRejectedException(
+                "setEventValueForArrayList<${ITEM::class.simpleName}>", "key", "method = ?"
+            )
+        }
+        return super.setEventValueForArrayList(builder)
+    }
+
+    /**
+     * 获取值
+     */
+    inline fun <reified T : Any> getEventValue(init: EventLiveDataGetterBuilder<T>.() -> Unit): EventValue<T>? {
+        val builder = EventLiveDataGetterBuilder<T>()
+        builder.init()
+        if (!builder.keyBuilder.check()) {
+            throw DslRejectedException(
+                "getEventValue<${T::class.simpleName}>", "key", "method = ?"
+            )
+        }
+        return super.getEventValue(builder)
+    }
+
+    /**
+     * 获取值
+     */
+    inline fun <reified ITEM : Any> getEventValueForArrayList(init: EventLiveDataArrayListGetterBuilder<ITEM>.() -> Unit): EventValue<ArrayList<ITEM>>? {
+        val builder = EventLiveDataArrayListGetterBuilder<ITEM>()
+        builder.init()
+        if (!builder.keyBuilder.check()) {
+            throw DslRejectedException(
+                "getEventValueForArrayList<${ITEM::class.simpleName}>", "key", "method = ?"
+            )
+        }
+        return super.getEventValueForArrayList(builder)
+    }
 
 
     /**
