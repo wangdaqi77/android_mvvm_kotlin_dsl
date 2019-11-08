@@ -19,7 +19,7 @@ viewModel<XXViewModel> {
     }
 }
 ```
-#### ViewModel - 设置、更新数据
+#### ViewModel - 设置、更新数据（下一版使用kapt技术自动生成更新数据的方法，委托调用使用可以减少开发代码）
 ```kotlin
 fun setUserName(name:String) {
     setValue<String> {
