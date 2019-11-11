@@ -47,7 +47,7 @@ class EventLiveData<T> : MutableLiveData<EventValue<T>>() {
     /**
      * 订阅，接收数据变化的事件通知
      */
-    fun observe(owner: LifecycleOwner, builder: EventValueObserveBuilder<T>) {
+    fun observe(owner: LifecycleOwner, builder: EventValueObserverBuilder<T>) {
         super.observe(owner, Observer<EventValue<T>> { result ->
             if (result != null) {
                 val action = result.event

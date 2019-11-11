@@ -3,6 +3,7 @@ package com.wongki.framework.http.global
 import com.wongki.framework.http.exception.ApiException
 import com.wongki.framework.http.interceptor.IErrorInterceptor
 import com.wongki.framework.http.listener.OnResponseFailedConvertListener
+import com.wongki.framework.model.domain.CommonResponse
 
 /**
  * @author  wangqi
@@ -17,7 +18,12 @@ import com.wongki.framework.http.listener.OnResponseFailedConvertListener
 annotation class HttpConfigDslMarker
 
 /**
- * 配置http
+ * 全局配置http请求，可配置以下信息
+ * [GlobalHttpConfig.CODE_API_SUCCESS] 与服务器约束的成功码（必须配置）
+ * [GlobalHttpConfig.CODE_API_SUCCESS] 与服务器约束的成功码（必须配置）
+ * [GlobalHttpConfig.onConvertFailed]  解析服务器的错误码（推荐配置，当框架解析失败时会触发）
+ * [GlobalHttpConfig.onErrorIntercept] 请求失败的拦截器（推荐配置，例如登录失效的统一处理）
+ *
  */
 @HttpConfigDslMarker
 fun globalHttpConfig(init: GlobalHttpConfig.() -> Unit) {
@@ -29,6 +35,8 @@ object GlobalHttpConfig {
     private var inner = false // 内部标记
     var onResponseConvertFailedListener: OnResponseFailedConvertListener? = null
     var globalHttpErrorInterceptor: IErrorInterceptor? = null
+    var CODE_API_SUCCESS = 0 // 与服务器协商的成功码
+    lateinit var RESPONSE_SUB_CLASS: Class<out CommonResponse<*>>
 
     /**
      * 当转换失败时被触发

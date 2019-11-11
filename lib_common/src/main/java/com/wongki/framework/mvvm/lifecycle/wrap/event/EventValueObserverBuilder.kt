@@ -11,7 +11,7 @@ import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
  */
 
 @LiveDataViewModelDslMarker
-open class EventValueObserveBuilder<T> {
+open class EventValueObserverBuilder<T> {
     var onStart: (() -> Unit)? = null
     var onCancel: (() -> Unit)? = null
     var onFailed: ((Int, String) -> Boolean)? = null

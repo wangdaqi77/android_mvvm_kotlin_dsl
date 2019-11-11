@@ -27,7 +27,6 @@ class HttpRequesterManager {
         }
     }
 
-
     /**
      * 添加单个requester，requester绑定到tag
      */
@@ -44,7 +43,7 @@ class HttpRequesterManager {
     }
 
     /**
-     * 取消request&&移除单个requester，requester取消绑定tag
+     * 根据httpLifecycleObserver移除单个requester
      */
     fun removeRequester(httpLifecycleObserver: IHttpLifecycleObserver, requester: IRequester) {
         find(httpLifecycleObserver) { cache ->

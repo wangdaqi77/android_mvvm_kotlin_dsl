@@ -5,6 +5,7 @@ import com.wongki.framework.base.BaseApplication
 import com.wongki.framework.http.exception.ApiException
 import com.wongki.framework.http.global.globalHttpConfig
 import com.wongki.framework.model.domain.CommonResponse
+import com.wongki.framework.model.domain.MyResponse
 import com.wongki.framework.utils.transform
 
 /**
@@ -22,18 +23,21 @@ class DemoApplication : BaseApplication() {
 
     private fun initHttp() {
         globalHttpConfig {
+            RESPONSE_SUB_CLASS = MyResponse::class.java
+            CODE_API_SUCCESS = 200
 
             onConvertFailed { response, mediaType ->
                 /**
                  * 当转换失败时被触发
-                 * 在这里你需要把服务器的错误码转换成ApiException，如果没有有效的错误信息可以返回null
+                 * 在这里你需要把服务器的错误信息转换成ApiException，
+                 * 如果没有有效的服务器错误信息需要返回null
                  */
                 Log.e("onConvertFailed","mediaType:$mediaType")
                 var code: Int = -1
                 var msg: String = ""
-                response.transform(CommonResponse::class.java) { target ->
-                    code = optInt("status", -1)
-                    msg = optString("msg", "")
+                response.transform(MyResponse::class.java) { target ->
+                    code = optInt("code", -1)
+                    msg = optString("message", "")
                 }
 
                 if (code != -1) {

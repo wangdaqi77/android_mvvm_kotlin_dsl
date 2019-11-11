@@ -7,6 +7,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelStore
 import com.wongki.framework.http.retrofit.core.RetrofitServiceCore
+import com.wongki.framework.model.domain.MyResponse
 import com.wongki.framework.mvvm.event.Event
 import com.wongki.framework.mvvm.lifecycle.exception.DslRejectedException
 import com.wongki.framework.mvvm.lifecycle.wrap.IEventLiveDataViewModel
@@ -60,15 +61,15 @@ import java.lang.ref.WeakReference
  * 二、设置值
  * 1.[LiveDataViewModel.setValue]常规无状态，使用参考上面的例子
  * 2.[LiveDataViewModel.setEventValue]异步场景有状态，
- * 具体使用可参考[LiveDataViewModel.requestAndTransformEventObserveAndReceiveBeforeNotifyUI]
+ * 具体使用可参考[LiveDataViewModel.observeAndTransformEventObserver]
  * 3.[LiveDataViewModel.setEventValueForArrayList]异步场景ArrayList有状态，
- * 具体使用可参考[LiveDataViewModel.requestAndTransformEventObserveAndReceiveBeforeNotifyUIForArrayList]
+ * 具体使用可参考[LiveDataViewModel.observeAndTransformEventObserverForArrayList]
  *
  * 三、获取值(参考设置值)
  * 1.[LiveDataViewModel.getValue]常规无状态
  * 2.[LiveDataViewModel.getEventValue]异步场景有状态
  * 3.[LiveDataViewModel.getEventValueForArrayList]异步场景ArrayList有状态
- *  
+ *
  *  注意：
  *  装载订阅时生命周期的提供者默认值为创建ViewModel时的LifecycleOwner对象，
  *  详情请查看[FragmentActivity.viewModel]和[Fragment.viewModel]的拓展函数,
@@ -213,21 +214,21 @@ open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataVi
         return super.getEventValueForArrayList(builder)
     }
 
-
     /**
-     * 真正发起网络请求
-     * &&服务器返回结果转换成EventObserver
-     * &&在通知UI前观察Event
+     * 网络请求的观察器转换成EventValue[setEventValue]通知[attachEventObserve]
+     * &&
+     * 在通知UI前观察数据
      */
     @Suppress("UNCHECKED_CAST")
-    inline fun <API, reified RESPONSE_DATA : Any> RetrofitServiceCore<API>.RequesterBuilder<RESPONSE_DATA>.requestAndTransformEventObserveAndReceiveBeforeNotifyUI(
-        crossinline init: EventValueObserveBuilder<RESPONSE_DATA>.() -> Unit = {}
-    ): RetrofitServiceCore<API>.RetrofitRequester<RESPONSE_DATA> {
-        lifecycleObserver { this@LiveDataViewModel }
-        val builder = EventValueObserveBuilder<RESPONSE_DATA>()
+    inline fun <API, reified RESPONSE_DATA : Any> RetrofitServiceCore<API>.RequesterBuilder<MyResponse<RESPONSE_DATA>>.observeAndTransformEventObserver(
+        crossinline init: EventValueObserverBuilder<RESPONSE_DATA>.() -> Unit = {}
+    ) {
+        val builder = EventValueObserverBuilder<RESPONSE_DATA>()
         builder.init()
         val kClass = RESPONSE_DATA::class
-        return observer {
+
+        lifecycleObserver = this@LiveDataViewModel
+        observer {
             onStart {
                 builder.onStart?.invoke()
                 // 通知开始
@@ -255,9 +256,9 @@ open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataVi
             }
 
             onSuccess {
-                val result = this
+                val data = this?.data
 
-                builder.onSuccess?.invoke(result)
+                builder.onSuccess?.invoke(data)
                 // 通知成功
                 setEventValue<RESPONSE_DATA> {
                     key {
@@ -265,7 +266,7 @@ open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataVi
                     }
                     value {
                         event = Event.SUCCESS
-                        data = result
+                        this.data = this@onSuccess?.data
                     }
                 }
 
@@ -291,26 +292,24 @@ open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataVi
                     }
                 }?.errorProcessed ?: false
             }
-        }.apply {
-            lifecycleObserver { this@LiveDataViewModel }
         }
-
     }
 
+
     /**
-     * 真正发起网络请求
-     * &&服务器返回结果转换成EventObserver
-     * &&在通知UI前观察Event
+     * 网络请求的观察器转换成EventValue[setEventValueForArrayList]通知[attachEventObserveForArrayList]
+     * &&
+     * 在通知UI前观察数据
      */
     @Suppress("UNCHECKED_CAST")
-    inline fun <API, reified ITEM : Any> RetrofitServiceCore<API>.RequesterBuilder<ArrayList<ITEM>>.requestAndTransformEventObserveAndReceiveBeforeNotifyUIForArrayList(
-        crossinline init: EventValueObserveBuilder<ArrayList<ITEM>>.() -> Unit = {}
-    ): RetrofitServiceCore<API>.RetrofitRequester<ArrayList<ITEM>> {
-        lifecycleObserver { this@LiveDataViewModel }
-        val builder = EventValueObserveBuilder<ArrayList<ITEM>>()
+    inline fun <API, reified ITEM : Any> RetrofitServiceCore<API>.RequesterBuilder<MyResponse<ArrayList<ITEM>>>.observeAndTransformEventObserverForArrayList(
+        crossinline init: EventValueObserverBuilder<ArrayList<ITEM>>.() -> Unit = {}
+    ) {
+        lifecycleObserver = this@LiveDataViewModel
+        val builder = EventValueObserverBuilder<ArrayList<ITEM>>()
         builder.init()
         val kClass = ITEM::class
-        return observer {
+        observer {
 
             onStart {
                 builder.onStart?.invoke()
@@ -340,8 +339,7 @@ open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataVi
             }
 
             onSuccess {
-                val result = this
-
+                val result = this?.data
                 builder.onSuccess?.invoke(result)
                 // 通知成功
                 setEventValueForArrayList<ITEM> {
@@ -377,8 +375,6 @@ open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataVi
                     }
                 }?.errorProcessed ?: false
             }
-        }.apply {
-            lifecycleObserver { this@LiveDataViewModel }
         }
 
     }

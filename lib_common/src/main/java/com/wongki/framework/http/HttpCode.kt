@@ -1,9 +1,6 @@
 package com.wongki.framework.http
 
 object HttpCode {
-    //成功状态码
-    const val SUCCESSFUL = 200
-
     // 未知失败
     const val UNKNOWN_FAILED = -100
     // 解析数据失败

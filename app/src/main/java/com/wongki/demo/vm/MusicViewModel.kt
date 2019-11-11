@@ -19,27 +19,24 @@ class MusicViewModel : LiveDataViewModel() {
         // 请求服务器获取搜索结果
         musicService {
 
-            callArrayList<SearchMusic.Item> {
+            api { searchMusic(name = name) }.thenCall {
 
-                api { searchMusic(name = name) }
-
-                // 真正发起网络请求
-                // &&服务器返回结果转换成EventObserver
-                // &&在通知UI前观察Event（ex：在通知UI成功前设置结果总数和设置结果列表）
-                requestAndTransformEventObserveAndReceiveBeforeNotifyUIForArrayList {
-
-                    onSuccess{
-                        // 设置结果总数
+                /**
+                 * 网络请求的观察器转换成EventValue通知[MusicActivity.attachEventObserveForArrayList<SearchMusic.Item>]
+                 * &&
+                 * 在通知UI前观察数据（设置搜索结果总数和设置结果列表）
+                 */
+                observeAndTransformEventObserverForArrayList {
+                    onSuccess {
+                        // 设置搜索结果总数
                         this@MusicViewModel.setTotalCount(this)
                         // 设置结果列表
                         this@MusicViewModel.setResultList(this)
                     }
-
                 }
             }
 
         }
-
     }
 
     // 设置结果总数
@@ -52,14 +49,13 @@ class MusicViewModel : LiveDataViewModel() {
             }
 
             value {
-                list?.size
+                list?.size ?: 0
             }
         }
 
     }
 
     // 设置结果列表
-//    @VMSetter<String>
     private fun setResultList(list: ArrayList<SearchMusic.Item>?) {
         var result = ""
         list?.apply {

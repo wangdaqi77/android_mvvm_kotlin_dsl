@@ -40,8 +40,8 @@ fun setUserName(name:String) {
 
 ### 二、设置值
 #### 1.[LiveDataViewModel.setValue]常规无状态，使用参考上面的例子
-#### 2.[LiveDataViewModel.setEventValue]异步场景有状态，具体使用可参考[LiveDataViewModel.requestAndTransformEventObserveAndReceiveBeforeNotifyUI]
-#### 3.[LiveDataViewModel.setEventValueForArrayList]异步场景ArrayList有状态，具体使用可参考[LiveDataViewModel.requestAndTransformEventObserveAndReceiveBeforeNotifyUIForArrayList]
+#### 2.[LiveDataViewModel.setEventValue]异步场景有状态，具体使用可参考[LiveDataViewModel.observeAndTransformEventObserver]
+#### 3.[LiveDataViewModel.setEventValueForArrayList]异步场景ArrayList有状态，具体使用可参考[LiveDataViewModel.observeAndTransformEventObserverForArrayList]
 
 ### 三、获取值(参考设置值)
 #### 1.[LiveDataViewModel.getValue]常规无状态
@@ -145,22 +145,25 @@ class MusicViewModel : LiveDataViewModel() {
     fun searchMusic(name: String) {
         // 请求服务器获取搜索结果
         musicService {
-
-            callArrayList<SearchMusic.Item> {
-                api { searchMusic(name = name) }
-                // 真正发起网络请求
-                // &&服务器返回结果转换成EventObserver
-                // &&在通知UI前观察Event（ex：在通知UI成功前设置结果总数和设置结果列表）
-                requestAndTransformEventObserveAndReceiveBeforeNotifyUIForArrayList {
-                    onSuccess{
+            
+            api { searchMusic(name = name) }.thenCall {
+                /**
+                 * 网络请求的观察器转换成EventValue通知[MusicActivity.attachEventObserveForArrayList<SearchMusic.Item>]
+                 * &&
+                 * 在通知UI前观察数据（设置搜索结果总数和设置结果列表）
+                 */
+                observeAndTransformEventObserverForArrayList {
+                    onSuccess {
                         // 设置搜索结果总数
                         this@MusicViewModel.setTotalCount(this)
                         // 设置结果列表
                         this@MusicViewModel.setResultList(this)
                     }
-                }
-            }
 
+                }
+
+            }
+            
         }
 
     }

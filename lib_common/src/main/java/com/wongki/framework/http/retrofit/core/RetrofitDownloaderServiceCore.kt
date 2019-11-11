@@ -193,8 +193,8 @@ abstract class RetrofitDownloaderServiceCore<API> : AbsRetrofitServiceCore<API>(
         override fun cancel() {
             if (!isCancel()) {
                 getDisposable()?.dispose()
-                lifecycleObserver?.get()?.let { tag ->
-                    getHttpRequesterManager().removeRequester(tag, this)
+                lifecycleObserver?.get()?.let { observer ->
+                    getHttpRequesterManager().removeRequester(observer, this)
                 }
                 onCancel?.invoke()
             }

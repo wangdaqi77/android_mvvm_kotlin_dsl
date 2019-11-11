@@ -19,14 +19,14 @@ import java.net.UnknownHostException
 import java.text.ParseException
 
 
-abstract class HttpCommonObserver<R>(
+abstract class HttpCommonObserver<T>(
     private val errorInterceptor: ErrorInterceptorNode? = null,
     private val onFailed: (Int, String) -> Boolean,
-    private val onSuccess: (R) -> Unit
-) : Observer<R> {
+    private val onSuccess: (T) -> Unit
+) : Observer<T> {
 
     private val TAG = "HttpCommonObserver"
-    override fun onNext(t: R) {
+    override fun onNext(t: T) {
         onSuccess(t)
     }
 
