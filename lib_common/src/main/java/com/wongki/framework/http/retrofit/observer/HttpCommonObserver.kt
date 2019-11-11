@@ -7,9 +7,9 @@ import com.wongki.framework.http.exception.ApiException
 import com.wongki.framework.http.HttpCode
 import com.wongki.framework.http.interceptor.IErrorInterceptor
 import com.wongki.framework.http.exception.ParseResponseException
+import com.wongki.framework.http.global.GlobalHttpConfig
 import com.wongki.framework.http.interceptor.ErrorInterceptorNode
 import io.reactivex.Observer
-import com.wongki.framework.http.interceptor.GlobalHttpErrorInterceptor
 import org.json.JSONException
 import retrofit2.HttpException
 import java.io.IOException
@@ -50,10 +50,11 @@ abstract class HttpCommonObserver<R>(
             errorInterceptor = errorInterceptor.next
         }
 
-        if (!isProcessed) {
+        val globalHttpErrorInterceptor = GlobalHttpConfig.globalHttpErrorInterceptor
+        if (!isProcessed&&globalHttpErrorInterceptor != null) {
             // 交给全局处理
-            isProcessed = GlobalHttpErrorInterceptor.onInterceptError(code, msg)
-            Log.e(TAG,"${GlobalHttpErrorInterceptor.tag} code：$code, message：$msg 拦截状态：$isProcessed")
+            isProcessed = globalHttpErrorInterceptor.onInterceptError(code, msg)
+            Log.e(TAG,"${globalHttpErrorInterceptor.tag} code：$code, message：$msg 拦截状态：$isProcessed")
         }
 
         // 没有拦截

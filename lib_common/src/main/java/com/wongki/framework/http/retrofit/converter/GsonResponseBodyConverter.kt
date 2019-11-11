@@ -6,8 +6,7 @@ import com.wongki.framework.model.domain.CommonResponse
 import com.wongki.framework.http.HttpCode
 import com.wongki.framework.http.exception.ParseResponseException
 import com.google.gson.*
-import com.google.gson.reflect.TypeToken
-import com.wongki.framework.utils.transform
+import com.wongki.framework.http.global.GlobalHttpConfig
 import okhttp3.MediaType
 import okhttp3.ResponseBody
 import retrofit2.Converter
@@ -29,7 +28,7 @@ class GsonResponseBodyConverter<T>(private val gson: Gson, private val adapter: 
     @Throws(ApiException::class, IOException::class, ParseResponseException::class)
     override fun convert(responseBody: ResponseBody): T? {
         val response = responseBody.string()
-
+        val mediaType = responseBody.contentType().toString()
         var commonResponse: CommonResponse<*>? = null
         try {
             /**
@@ -65,18 +64,10 @@ class GsonResponseBodyConverter<T>(private val gson: Gson, private val adapter: 
 
         // 解析失败
         if (commonResponse == null) {
-            // 仅仅解析meta
 
-            var code: Int = -1
-            var msg: String = ""
-            response.transform(CommonResponse::class.java) { target ->
-
-                code = optInt("status", -1)
-                msg = optString("msg", "")
-
-            }
-            if (code != -1) {
-                throw ApiException(code, msg)
+            val apiException = GlobalHttpConfig.onResponseConvertFailedListener?.onConvertFailed(response,mediaType)
+            if (apiException!=null) {
+                throw apiException
             }
             throw ParseResponseException("parse failed!")
         }

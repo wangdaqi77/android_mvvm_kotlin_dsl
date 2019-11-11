@@ -1,6 +1,7 @@
 package com.wongki.framework.http.interceptor
 
 import com.wongki.framework.http.retrofit.core.RetrofitServiceCore
+import com.wongki.framework.http.global.GlobalHttpConfig
 
 /**
  * @author  wangqi
@@ -18,7 +19,7 @@ interface IErrorInterceptor {
      * 服务内核的错误拦截器
      * [RetrofitServiceCore.selfServiceApiErrorInterceptor]->
      * 全局的错误拦截器
-     * [GlobalHttpErrorInterceptor.onIntercept]
+     * [GlobalHttpConfig.onErrorIntercept]
      * 】
      *
      * @return 返回true代表拦截处理，错误会终止继续传递
