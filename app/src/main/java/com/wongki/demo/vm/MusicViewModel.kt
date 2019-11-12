@@ -2,6 +2,7 @@ package com.wongki.demo.vm
 
 import com.wongki.demo.model.remote.musicService
 import com.wongki.demo.model.bean.SearchMusic
+import com.wongki.framework.http.retrofit.core.thenCall
 import com.wongki.framework.mvvm.lifecycle.LiveDataViewModel
 import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
 

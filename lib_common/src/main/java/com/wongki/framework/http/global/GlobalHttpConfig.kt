@@ -32,11 +32,10 @@ fun globalHttpConfig(init: GlobalHttpConfig.() -> Unit) {
 
 @HttpConfigDslMarker
 object GlobalHttpConfig {
-    private var inner = false // 内部标记
     var onResponseConvertFailedListener: OnResponseFailedConvertListener? = null
     var globalHttpErrorInterceptor: IErrorInterceptor? = null
     var CODE_API_SUCCESS = 0 // 与服务器协商的成功码
-    lateinit var RESPONSE_SUB_CLASS: Class<out CommonResponse<*>>
+    lateinit var RESPONSE_CLASS: Class<out CommonResponse<*>>
 
     /**
      * 当转换失败时被触发
@@ -44,7 +43,6 @@ object GlobalHttpConfig {
      * @param convert  1.response  2.mediaType
      */
     fun onConvertFailed(convert: (String, String) -> ApiException?) {
-        inner = true
         onResponseConvertFailedListener = object : OnResponseFailedConvertListener {
             override fun onConvertFailed(response: String, mediaType: String): ApiException? {
                 @Suppress("UNCHECKED_CAST")

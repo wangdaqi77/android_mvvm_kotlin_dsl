@@ -2,6 +2,7 @@ package com.wongki.framework.http.retrofit.observer
 
 
 import android.util.Log
+import com.wongki.framework.BuildConfig
 import com.wongki.framework.extensions.toast
 import com.wongki.framework.http.exception.ApiException
 import com.wongki.framework.http.HttpCode
@@ -34,6 +35,7 @@ abstract class HttpCommonObserver<T>(
         val wrapError: Pair<Int, String> = parseAndWrapError(e)
         val code: Int = wrapError.first
         val msg: String = wrapError.second
+        Log.e(TAG,"api请求错误， code：$code, message：$msg")
 
         /**
          * 是否已处理该错误

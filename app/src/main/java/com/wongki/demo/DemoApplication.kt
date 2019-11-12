@@ -23,7 +23,7 @@ class DemoApplication : BaseApplication() {
 
     private fun initHttp() {
         globalHttpConfig {
-            RESPONSE_SUB_CLASS = MyResponse::class.java
+            RESPONSE_CLASS = MyResponse::class.java
             CODE_API_SUCCESS = 200
 
             onConvertFailed { response, mediaType ->

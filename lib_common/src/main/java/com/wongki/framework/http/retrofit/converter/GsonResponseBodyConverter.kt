@@ -3,7 +3,6 @@ package com.wongki.framework.http.retrofit.converter
 import android.util.Log
 import com.wongki.framework.http.exception.ApiException
 import com.wongki.framework.model.domain.CommonResponse
-import com.wongki.framework.http.HttpCode
 import com.wongki.framework.http.exception.ParseResponseException
 import com.google.gson.*
 import com.wongki.framework.http.global.GlobalHttpConfig
@@ -74,13 +73,18 @@ class GsonResponseBodyConverter<T>(private val gson: Gson, private val adapter: 
                  * 这里的处理主要兼容服务器的数据返回空字符串，导致解析后和定义的类型不一致导致的错误。
                  * ex：定义result为User类型，实际返回{"code":200,"message":"成功!","result":""}
                  */
-                if (GlobalHttpConfig.CODE_API_SUCCESS == apiException.code) {
-                    val responseSubClass = GlobalHttpConfig.RESPONSE_SUB_CLASS
-                    val newInstance = responseSubClass.newInstance()
-                    newInstance.code = apiException.code
-                    newInstance.message = apiException.message
-                    return newInstance as T
-                }else{
+//                if (GlobalHttpConfig.CODE_API_SUCCESS == apiException.code) {
+//                    val responseSubClass = GlobalHttpConfig.RESPONSE_SUB_CLASS
+//                    val newInstance = responseSubClass.newInstance()
+//                    newInstance.code = apiException.code
+//                    newInstance.message = apiException.message
+//                    return newInstance as T
+//                }else{
+//                    throw apiException
+//                }
+
+                // 解析到的错误码非成功
+                if (GlobalHttpConfig.CODE_API_SUCCESS != apiException.code) {
                     throw apiException
                 }
             }
@@ -89,14 +93,16 @@ class GsonResponseBodyConverter<T>(private val gson: Gson, private val adapter: 
         // 2. 有可能是定义的响应结构与服务器返回的类型不一致造成的.
         // ex：定义result为User，实际返回{"code":200,"message":"成功!","result":""}
         if (convertResult == null) {
-            throw ParseResponseException("解析失败")
+            throw ParseResponseException("解析失败，response：$response")
         }
 
         // 3.解析的结构并不是约束的CommonResponse的子类
-        if (convertResult !is CommonResponse<*>) {
-            throw ParseResponseException("解析失败，必须解析成CommonResponse的实现类，请检查你定义Service接口api方法的返回值")
+        val responseClass = GlobalHttpConfig.RESPONSE_CLASS
+        if (!responseClass.isInstance(convertResult)) {
+            throw ParseResponseException("解析失败，实体类必须是${responseClass.name}，请检查你定义Service接口的api函数返回值")
         }
 
+        convertResult as CommonResponse<*>
         val code = convertResult.code
         val msg = convertResult.message
         when (code) {

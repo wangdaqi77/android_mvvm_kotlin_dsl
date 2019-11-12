@@ -29,25 +29,17 @@ import java.util.concurrent.TimeUnit
  * desc:    retrofit网络请求框架核心类
  *
  */
-abstract class RetrofitServiceCore<API> : AbsRetrofitServiceCore<API>(), ISSL {
+@DslMarker
+annotation class RetrofitServiceDslMarker
 
+@RetrofitServiceDslMarker
+abstract class RetrofitServiceCore<API> : AbsRetrofitServiceCore<API>(), ISSL {
     /**
-     * 创建新的网络请求器
-     * @param api 请求服务器的api接口定义
+     * 请求服务器的api接口定义，请继续调用[thenCall]发起网络请求
+     * @param api
      */
     fun <RESPONSE_DATA> api(api: API.() -> Observable<RESPONSE_DATA>): RequesterBuilderCreator<RESPONSE_DATA> {
         return RequesterBuilderCreator(api)
-    }
-
-    /**
-     * 设置完api，接下来你构建请求网络相关的
-     */
-    fun <RESPONSE_DATA> RequesterBuilderCreator<RESPONSE_DATA>.thenCall(init: RequesterBuilder<RESPONSE_DATA>.() -> Unit): IRequester {
-        val requesterBuilder = create()
-        requesterBuilder.init()
-        val requester = requesterBuilder.build()
-        requester.request()
-        return requester
     }
 
     /**
@@ -220,21 +212,17 @@ abstract class RetrofitServiceCore<API> : AbsRetrofitServiceCore<API>(), ISSL {
                 composer = composer ?: RxSchedulers.applyRetrofitHttpDefaultSchedulers(),
                 errorInterceptor = errorInterceptorLinked ?: core.selfServiceApiErrorInterceptor,
                 onStart = { disposable ->
-                    this.mDisposable = WeakReference(disposable)
-                    //添加请求
-                    lifecycleObserver?.get()?.let { tag ->
-                        core.getHttpRequesterManager().addRequester(tag, this@RetrofitRequester)
-                    }
+                    addRequester2Manager(disposable)
                     onStart?.invoke()
                 },
                 onSuccess = { response ->
                     onSuccess?.invoke(response)
                 },
                 onComplete = {
-                    notifyRemoveRequester()
+                    removeRequesterFromManager()
                 },
                 onFailed = onFailed@{ code, message ->
-                    notifyRemoveRequester()
+                    removeRequesterFromManager()
                     return@onFailed onFailed?.invoke(code, message) ?: false
                 }
             )
@@ -255,7 +243,22 @@ abstract class RetrofitServiceCore<API> : AbsRetrofitServiceCore<API>(), ISSL {
             }
         }
 
-        private fun notifyRemoveRequester() {
+
+        /**
+         * 添加请求到请求管理器
+         */
+        private fun addRequester2Manager(disposable: Disposable) {
+            this.mDisposable = WeakReference(disposable)
+            //添加请求
+            lifecycleObserver?.get()?.let { tag ->
+                core.getHttpRequesterManager().addRequester(tag, this@RetrofitRequester)
+            }
+        }
+
+        /**
+         * 从管理器移除请求
+         */
+        private fun removeRequesterFromManager() {
             // 完成remove请求
             lifecycleObserver?.get()?.let { tag ->
                 core.getHttpRequesterManager().removeRequester(tag, this@RetrofitRequester)
@@ -370,4 +373,16 @@ abstract class RetrofitServiceCore<API> : AbsRetrofitServiceCore<API>(), ISSL {
     }
 }
 
+
+
+/**
+ * 设置完api，接下来你构建请求网络相关的
+ */
+fun <API,RESPONSE_DATA> RetrofitServiceCore<API>.RequesterBuilderCreator<RESPONSE_DATA>.thenCall(init: RetrofitServiceCore<API>.RequesterBuilder<RESPONSE_DATA>.() -> Unit): IRequester {
+    val requesterBuilder = create()
+    requesterBuilder.init()
+    val requester = requesterBuilder.build()
+    requester.request()
+    return requester
+}
 

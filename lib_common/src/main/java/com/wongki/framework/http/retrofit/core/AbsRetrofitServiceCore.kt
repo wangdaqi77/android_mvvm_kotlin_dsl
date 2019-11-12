@@ -22,11 +22,6 @@ import java.lang.reflect.ParameterizedType
  * email:   wangqi7676@163.com
  *
  */
-
-@DslMarker
-annotation class RetrofitServiceDslMarker
-
-@RetrofitServiceDslMarker
 abstract class AbsRetrofitServiceCore<API> : IServiceCore, IRetrofit<API>, IHttpRequesterManagerOwner {
 
     override val mConnectTimeOut: Long = 15_000
