@@ -9,7 +9,7 @@ import com.wongki.framework.http.base.IRequester
  * email:   wangqi7676@163.com
  * desc:    .
  */
-class HttpRequesterManager {
+class HttpLifecycleManager {
     private val mCaches by lazy { HashMap<IHttpLifecycleObserver, ArrayList<IRequester>>() }
 
     /**

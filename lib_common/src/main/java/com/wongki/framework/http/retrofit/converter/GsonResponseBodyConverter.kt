@@ -5,7 +5,7 @@ import com.wongki.framework.http.exception.ApiException
 import com.wongki.framework.model.domain.CommonResponse
 import com.wongki.framework.http.exception.ParseResponseException
 import com.google.gson.*
-import com.wongki.framework.http.global.GlobalHttpConfig
+import com.wongki.framework.http.gInner
 import com.wongki.framework.http.retrofit.observer.HttpCommonObserver
 import okhttp3.MediaType
 import okhttp3.ResponseBody
@@ -63,8 +63,7 @@ class GsonResponseBodyConverter<T>(private val gson: Gson, private val adapter: 
         // 1.交给外层专门解析错误
         if (convertResult == null) {
 
-            val apiException
-                    = GlobalHttpConfig.onResponseConvertFailedListener?.onConvertFailed(response,mediaType)
+            val apiException = gInner.onResponseConvertFailedListener?.onConvertFailed(response,mediaType)
 
             if (apiException != null) {
 
@@ -84,7 +83,7 @@ class GsonResponseBodyConverter<T>(private val gson: Gson, private val adapter: 
 //                }
 
                 // 解析到的错误码非成功
-                if (GlobalHttpConfig.CODE_API_SUCCESS != apiException.code) {
+                if (gInner.successfulCode != apiException.code) {
                     throw apiException
                 }
             }
@@ -97,8 +96,8 @@ class GsonResponseBodyConverter<T>(private val gson: Gson, private val adapter: 
         }
 
         // 3.解析的结构并不是约束的CommonResponse的子类
-        val responseClass = GlobalHttpConfig.RESPONSE_CLASS
-        if (!responseClass.isInstance(convertResult)) {
+        val responseClass = gInner.responseClass
+        if (responseClass!=null && !responseClass.isInstance(convertResult)) {
             throw ParseResponseException("解析失败，实体类必须是${responseClass.name}，请检查你定义Service接口的api函数返回值")
         }
 
@@ -106,7 +105,7 @@ class GsonResponseBodyConverter<T>(private val gson: Gson, private val adapter: 
         val code = convertResult.code
         val msg = convertResult.message
         when (code) {
-            GlobalHttpConfig.CODE_API_SUCCESS -> return convertResult as T
+            gInner.successfulCode -> return convertResult as T
             else -> {
                 throw ApiException(code, msg)
             }

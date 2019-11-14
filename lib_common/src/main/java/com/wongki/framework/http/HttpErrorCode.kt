@@ -1,6 +1,6 @@
 package com.wongki.framework.http
 
-object HttpCode {
+object HttpErrorCode {
     // 未知失败
     const val UNKNOWN_FAILED = -100
     // 解析数据失败

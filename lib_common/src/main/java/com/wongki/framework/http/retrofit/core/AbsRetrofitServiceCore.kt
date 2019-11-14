@@ -1,17 +1,25 @@
 package com.wongki.framework.http.retrofit.core
 
-import android.util.Log
-import com.wongki.framework.http.base.IServiceCore
-import com.wongki.framework.http.lifecycle.HttpRequesterManager
-import com.wongki.framework.http.lifecycle.IHttpRequestManagerFactory
+import com.wongki.framework.http.*
+import com.wongki.framework.http.cacheSelf
+import com.wongki.framework.http.config
+import com.wongki.framework.http.config.HttpConfig
+import com.wongki.framework.http.config.HttpConfigBuilder
+import com.wongki.framework.http.config.IHttpConfig
+import com.wongki.framework.http.gConfig
+import com.wongki.framework.http.gInner
+import com.wongki.framework.http.lifecycle.HttpLifecycleManager
+import com.wongki.framework.http.lifecycle.IHttpLifecycleManagerFactory
 import com.wongki.framework.http.lifecycle.IHttpRequesterManagerOwner
-import com.wongki.framework.http.interceptor.ErrorInterceptorNode
+import com.wongki.framework.http.interceptor.ApiErrorInterceptorNode
+import com.wongki.framework.http.newConfig
 import com.wongki.framework.http.retrofit.IRetrofit
 import com.wongki.framework.http.retrofit.lifecycle.HttpRequesterManagerHelper
+import com.wongki.framework.http.retrofit.observer.HttpCommonObserver
 import io.reactivex.Observable
 import io.reactivex.ObservableTransformer
+import io.reactivex.disposables.Disposable
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import java.lang.reflect.ParameterizedType
 
@@ -21,46 +29,95 @@ import java.lang.reflect.ParameterizedType
  * date:    2019/6/6
  * email:   wangqi7676@163.com
  *
+ * config 发生变动之后，
  */
-abstract class AbsRetrofitServiceCore<API> : IServiceCore, IRetrofit<API>, IHttpRequesterManagerOwner {
+abstract class AbsRetrofitServiceCore<SERVICE> : IRetrofit<SERVICE>, IHttpRequesterManagerOwner {
+    init {
+        requireNotNull(gConfig) { "未配置http全局配置，推荐在你的Application.onCreate()进行初始化\"httpGlobalConfig{ ... }\"" }
+        updateConfigAndRetrofit()
+        cacheSelf()
+    }
 
-    override val mConnectTimeOut: Long = 15_000
-    override val mReadTimeOut: Long = 15_000
-    override val mWriteTimeOut: Long = 15_000
-    private val mRetrofit by lazy { generateRetrofit() }
-    protected open var selfServiceApiErrorInterceptor: ErrorInterceptorNode? = null
+    protected lateinit var defaultConfig: HttpConfig
+    protected lateinit var defaultRetrofit: Retrofit
+    private var lifecycleManager: HttpLifecycleManager? = null
 
     /**
-     * 默认的服务对象
+     * 配置变动
      */
-    protected val mDefaultApiProxy: API by lazy {
-        val paramType = this.javaClass.genericSuperclass as ParameterizedType
-        val serviceClazz = paramType.actualTypeArguments[0] as Class<API>
-        mRetrofit.create(serviceClazz)
+    fun onConfigChange() {
+        gInner.logger?.log("配置发生变动，onConfigChange（）")
+        updateConfigAndRetrofit()
+    }
+
+    private fun updateConfigAndRetrofit() {
+        defaultConfig = this.generateDefaultConfig()
+        defaultRetrofit = this.generateDefaultRetrofit()
     }
 
     /**
-     * 创建其他的服务对象
+     * 生成默认的配置
      */
-    fun <T> createOther(serviceClazz: Class<T>): T {
-        return mRetrofit.create(serviceClazz)
-    }
+    abstract fun generateDefaultConfig(): HttpConfig
+
+    /**
+     * 生成默认的retrofit
+     */
+    abstract fun generateDefaultRetrofit(): Retrofit
 
     /**
      * 发起请求
-     * @param request 默认的服务对象中具体的api请求方法
+     * @param callApi 默认的服务对象中具体的api请求方法
      * @param composer 线程调度
      */
-    protected fun <RESPONSE, RESPONSE_MAP> request(request: API.() -> Observable<RESPONSE>, composer: ObservableTransformer<RESPONSE, RESPONSE_MAP>): Observable<RESPONSE_MAP> {
-        return mDefaultApiProxy.request().compose(composer)
+    protected fun <RESPONSE, RESPONSE_MAP> request(
+        retrofit: Retrofit,
+        callApi: SERVICE.() -> Observable<RESPONSE>,
+        composer: ObservableTransformer<RESPONSE, RESPONSE_MAP>,
+        errorInterceptor: ApiErrorInterceptorNode? = null,
+        onFailed: (Int, String) -> Boolean,
+        onSuccess: (RESPONSE_MAP) -> Unit,
+        onStart: (Disposable) -> Unit,
+        onComplete: () -> Unit
+    ) {
+        return retrofit
+            .createServiceProxy()
+            .callApi()
+            .compose(composer)
+            .subscribe(object :
+                HttpCommonObserver<RESPONSE_MAP>(errorInterceptor, onFailed, onSuccess) {
+
+                override fun onComplete() {
+                    onComplete()
+                }
+
+                override fun onSubscribe(d: Disposable) {
+                    onStart(d)
+                }
+
+            })
     }
+
+    /**
+     * 生成独立的配置
+     */
+    @HttpDsl
+    protected fun newConfig(init: HttpConfigBuilder.() -> Unit) =
+        com.wongki.framework.http.newConfig(init)
+
+    /**
+     * 在全局配置的基础上配置
+     */
+    @HttpDsl
+    protected fun config(init: HttpConfigBuilder.() -> Unit) =
+        gConfig!!.config(init)
 
     /**
      * 创建网络请求生命周期管理器
      */
-    private object HttpRequestFactory : IHttpRequestManagerFactory {
-        override fun createHttpRequesterManager(): HttpRequesterManager {
-            val httpRequesterManager = HttpRequesterManager()
+    private object HttpLifecycleFactory : IHttpLifecycleManagerFactory {
+        override fun createHttpLifecycleManager(): HttpLifecycleManager {
+            val httpRequesterManager = HttpLifecycleManager()
             // 将生命周期管理器添加到缓存中
             HttpRequesterManagerHelper.addRequesterManager(httpRequesterManager)
             return httpRequesterManager
@@ -68,73 +125,71 @@ abstract class AbsRetrofitServiceCore<API> : IServiceCore, IRetrofit<API>, IHttp
     }
 
     /**
-     * Log拦截器
-     */
-    protected object CommonLogInterceptor : HttpLoggingInterceptor.Logger {
-        override fun log(message: String) {
-            Log.i(javaClass.simpleName, message)
-        }
-    }
-
-    /**
-     * 生成retrofit
-     */
-    abstract fun generateRetrofit(): Retrofit
-
-    protected fun getRetrofitOkHttpClient() = mRetrofit.callFactory() as OkHttpClient
-//    protected fun addInterceptor(interceptor: Interceptor) = getRetrofitOkHttpClient().interceptors().add(interceptor)
-//    protected fun removeInterceptor(interceptor: Interceptor) = getRetrofitOkHttpClient().interceptors().remove(interceptor)
-    /**
-     * 生命周期管理器
-     */
-    private var mLifecycleManager: HttpRequesterManager? = null
-
-    /**
      * 获取生命周期管理器
      */
-    final override fun getHttpRequesterManager(): HttpRequesterManager {
-        if (mLifecycleManager == null) {
+    final override fun getHttpRequesterManager(): HttpLifecycleManager {
+        if (lifecycleManager == null) {
             synchronized(RetrofitServiceCore::class.java) {
-                if (mLifecycleManager == null) {
-                    val lifecycle = HttpRequestFactory.createHttpRequesterManager()
-                    mLifecycleManager = lifecycle
+                if (lifecycleManager == null) {
+                    val lifecycle = HttpLifecycleFactory.createHttpLifecycleManager()
+                    lifecycleManager = lifecycle
                 }
             }
         }
 
-        return mLifecycleManager!!
+        return lifecycleManager!!
     }
 
+    private fun Retrofit.createServiceProxy(): SERVICE {
+        val javaClass = this@AbsRetrofitServiceCore.javaClass
+        val genericSuperclass = javaClass.genericSuperclass
+        val paramType = genericSuperclass as ParameterizedType
+        val serviceClazz = paramType.actualTypeArguments[0] as Class<*>
+        @Suppress("UNCHECKED_CAST")
+        return create(serviceClazz) as SERVICE
+    }
 
-    protected fun addCommonHeaders(okHttp: OkHttpClient.Builder) {
+    protected fun addCommonHeaders(
+        okHttp: OkHttpClient.Builder,
+        params: MutableMap<String, String?>?
+    ) {
+        if (params.isNullOrEmpty()) return
         okHttp.addInterceptor { chain ->
-            val commonRequestHeader = getCommonRequestHeader()
-            if (commonRequestHeader.isEmpty()) {
-                return@addInterceptor chain.proceed(chain.request())
+            val builder = chain.request().newBuilder()
+            for (entry in params) {
+                val key = entry.key
+                val value = entry.value
+                if (value != null) {
+                    builder.addHeader(key, value)
+                }
             }
-            val requestBuilder = chain.request().newBuilder()
-            for (entry in commonRequestHeader) {
-                requestBuilder.addHeader(entry.key, entry.value)
-            }
-            return@addInterceptor chain.proceed(requestBuilder.build())
+            return@addInterceptor chain.proceed(builder.build())
         }
     }
 
 
-    protected fun addCommonUrlParams(okHttp: OkHttpClient.Builder) {
+    protected fun addCommonUrlParams(
+        okHttp: OkHttpClient.Builder,
+        params: MutableMap<String, String?>?
+    ) {
+        if (params.isNullOrEmpty()) return
         okHttp.addInterceptor { chain ->
-            val commonUrlRequestParams = getCommonUrlRequestParams()
-            if (commonUrlRequestParams.isEmpty()) {
-                return@addInterceptor chain.proceed(chain.request())
+            val builder = chain.request().url().newBuilder()
+            for (entry in params) {
+                builder.addQueryParameter(entry.key, entry.value)
             }
-            val urlBuilder = chain.request().url().newBuilder()
-            for (entry in commonUrlRequestParams) {
-                urlBuilder.addQueryParameter(entry.key, entry.value)
-            }
-            val requestBuilder = chain.request().newBuilder().url(urlBuilder.build())
+            val requestBuilder = chain.request().newBuilder().url(builder.build())
             return@addInterceptor chain.proceed(requestBuilder.build())
         }
     }
+
+    protected fun <T> IHttpConfig.check(t: T?, filedName: String): T {
+        return t ?: throw IllegalArgumentException(
+            "未配置$filedName，请重写defaultConfig：\n" +
+                    "override var defaultConfig = config { $filedName \"...\" }"
+        )
+    }
+
 }
 
 

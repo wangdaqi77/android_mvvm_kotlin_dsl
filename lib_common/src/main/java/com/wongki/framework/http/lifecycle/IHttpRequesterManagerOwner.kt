@@ -7,5 +7,5 @@ package com.wongki.framework.http.lifecycle
  * desc:    .
  */
 interface IHttpRequesterManagerOwner {
-    fun getHttpRequesterManager(): HttpRequesterManager
+    fun getHttpRequesterManager(): HttpLifecycleManager
 }

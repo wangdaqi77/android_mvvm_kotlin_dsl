@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.wongki.framework.kotlin
+package com.wongki.framework.kt
 
 /**
  * Created by Allan Wang on 2017-08-05.

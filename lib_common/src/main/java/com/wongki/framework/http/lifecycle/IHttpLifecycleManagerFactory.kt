@@ -6,6 +6,6 @@ package com.wongki.framework.http.lifecycle
  * email:   wangqi7676@163.com
  * desc:    .
  */
-interface IHttpRequestManagerFactory {
-    fun createHttpRequesterManager(): HttpRequesterManager
+interface IHttpLifecycleManagerFactory {
+    fun createHttpLifecycleManager(): HttpLifecycleManager
 }

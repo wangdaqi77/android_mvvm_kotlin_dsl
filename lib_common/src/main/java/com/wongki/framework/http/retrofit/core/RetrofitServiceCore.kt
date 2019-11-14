@@ -1,11 +1,14 @@
 package com.wongki.framework.http.retrofit.core
 
-import android.util.Log
 import com.wongki.framework.BuildConfig
+import com.wongki.framework.http.HttpDsl
 import com.wongki.framework.http.base.IRequester
-import com.wongki.framework.http.interceptor.ErrorInterceptorNode
+import com.wongki.framework.http.config
+import com.wongki.framework.http.config.HttpConfig
+import com.wongki.framework.http.config.HttpConfigBuilder
+import com.wongki.framework.http.config.IHttpConfig
+import com.wongki.framework.http.interceptor.ApiErrorInterceptorNode
 import com.wongki.framework.http.retrofit.IRetrofitRequester
-import com.wongki.framework.http.retrofit.observer.HttpCommonObserver
 import com.wongki.framework.http.retrofit.converter.GsonConverterFactory
 import com.wongki.framework.http.retrofit.lifecycle.IHttpDestroyedObserver
 import com.wongki.framework.http.ssl.ISSL
@@ -29,24 +32,25 @@ import java.util.concurrent.TimeUnit
  * desc:    retrofit网络请求框架核心类
  *
  */
-@DslMarker
-annotation class RetrofitServiceDslMarker
 
-@RetrofitServiceDslMarker
-abstract class RetrofitServiceCore<API> : AbsRetrofitServiceCore<API>(), ISSL {
+
+@HttpDsl
+abstract class RetrofitServiceCore<SERVICE> : AbsRetrofitServiceCore<SERVICE>(), ISSL {
+
     /**
      * 请求服务器的api接口定义，请继续调用[thenCall]发起网络请求
      * @param api
      */
-    fun <RESPONSE_DATA> api(api: API.() -> Observable<RESPONSE_DATA>): RequesterBuilderCreator<RESPONSE_DATA> {
+    @HttpDsl
+    fun <RESPONSE_DATA> api(api: SERVICE.() -> Observable<RESPONSE_DATA>): RequesterBuilderCreator<RESPONSE_DATA> {
         return RequesterBuilderCreator(api)
     }
 
     /**
      * 网络请求构建器生成器
      */
-    @RetrofitServiceDslMarker
-    inner class RequesterBuilderCreator<RESPONSE_DATA>(private val api: API.() -> Observable<RESPONSE_DATA>) {
+    @HttpDsl
+    inner class RequesterBuilderCreator<RESPONSE_DATA>(private val api: SERVICE.() -> Observable<RESPONSE_DATA>) {
         internal fun create() = this@RetrofitServiceCore.RequesterBuilder<RESPONSE_DATA>().apply {
             this.api(this@RequesterBuilderCreator.api)
         }
@@ -55,71 +59,99 @@ abstract class RetrofitServiceCore<API> : AbsRetrofitServiceCore<API>(), ISSL {
     /**
      * 网络请求构建器
      */
-    @RetrofitServiceDslMarker
+    @HttpDsl
     inner class RequesterBuilder<RESPONSE_DATA> {
+        @HttpDsl
         var lifecycleObserver: IHttpDestroyedObserver? = null
-        private lateinit var api: API.() -> Observable<RESPONSE_DATA>
+        private lateinit var api: SERVICE.() -> Observable<RESPONSE_DATA>
+        // 默认使用默认的配置
+        private var config: HttpConfig = this@RetrofitServiceCore.defaultConfig
         private var observerBuilder: RetrofitRequesterObserverBuilder<RESPONSE_DATA>? = null
 
         /**
          * api请求
          */
-        internal fun api(api: API.() -> Observable<RESPONSE_DATA>): RequesterBuilder<RESPONSE_DATA> {
+        @HttpDsl
+        internal fun api(api: SERVICE.() -> Observable<RESPONSE_DATA>): RequesterBuilder<RESPONSE_DATA> {
             this.api = api
+            return this
+        }
+
+        /**
+         * 在默认配置的基础上进行配置[defaultConfig]
+         */
+        @HttpDsl
+        fun config(init: HttpConfigBuilder.() -> Unit): RequesterBuilder<RESPONSE_DATA> {
+            this.config = this@RetrofitServiceCore.defaultConfig.config(init)
+            return this
+        }
+
+        /**
+         * 生成独立的配置
+         */
+        @HttpDsl
+        fun newConfig(init: HttpConfigBuilder.() -> Unit): RequesterBuilder<RESPONSE_DATA> {
+            this.config = this@RetrofitServiceCore.newConfig(init)
             return this
         }
 
         /**
          * 观察此次的api请求
          */
+        @HttpDsl
         fun observer(init: RetrofitRequesterObserverBuilder<RESPONSE_DATA>.() -> Unit): RequesterBuilder<RESPONSE_DATA> {
-            val requesterObserverBuilder =
-                this@RetrofitServiceCore.RetrofitRequesterObserverBuilder<RESPONSE_DATA>()
+            val requesterObserverBuilder = this@RetrofitServiceCore.RetrofitRequesterObserverBuilder<RESPONSE_DATA>()
             requesterObserverBuilder.init()
             this.observerBuilder = requesterObserverBuilder
             return this
         }
 
-
         internal fun build(): RetrofitRequester<RESPONSE_DATA> {
             val retrofitRequester = this@RetrofitServiceCore.RetrofitRequester<RESPONSE_DATA>()
-            retrofitRequester.newRequest(api)
+            retrofitRequester.api(api)
+            retrofitRequester.config(config)
             retrofitRequester.setRequesterObserver(observerBuilder)
             return retrofitRequester
         }
     }
 
-    @RetrofitServiceDslMarker
+    @HttpDsl
     inner class RetrofitRequesterObserverBuilder<RESPONSE_DATA> {
         internal var onStart: (() -> Unit)? = null
         internal var onFailed: ((Int, String) -> Boolean)? = null
         internal var onCancel: (() -> Unit)? = null
         internal var onSuccess: (RESPONSE_DATA.() -> Unit)? = null
-        internal var errorInterceptor: ErrorInterceptorNode? = null
 
-        fun onErrorIntercept(onErrorIntercept: (Int, String?) -> Boolean) {
-            this.errorInterceptor = object : ErrorInterceptorNode() {
-                override val tag: String = "api调用处的错误拦截器"
-                override fun onInterceptError(code: Int, message: String): Boolean {
-                    return onErrorIntercept.invoke(code, message)
-                }
-            }
-        }
-
+        /**
+         * 当开始发起请求
+         */
+        @HttpDsl
         fun onStart(onStart: () -> Unit) {
             this.onStart = onStart
         }
 
-        fun onFailed(onFailed: (Int, String) -> Boolean) {
-            this.onFailed = onFailed
+        /**
+         * 当取消请求时
+         */
+        @HttpDsl
+        fun onCancel(onCancel: () -> Unit) {
+            this.onCancel = onCancel
         }
 
+        /**
+         * 当成功时
+         */
+        @HttpDsl
         fun onSuccess(onSuccess: RESPONSE_DATA?.() -> Unit) {
             this.onSuccess = onSuccess
         }
 
-        fun onCancel(onCancel: () -> Unit) {
-            this.onCancel = onCancel
+        /**
+         * 当失败时
+         */
+        @HttpDsl
+        fun onFailed(onFailed: (Int, String) -> Boolean) {
+            this.onFailed = onFailed
         }
 
 
@@ -128,14 +160,12 @@ abstract class RetrofitServiceCore<API> : AbsRetrofitServiceCore<API>(), ISSL {
     /**
      * 每次请求都会构建一个retrofit请求器
      */
-    @RetrofitServiceDslMarker
-    inner class RetrofitRequester<RESPONSE_DATA> : IRetrofitRequester<API, RESPONSE_DATA>() {
+    @HttpDsl
+    inner class RetrofitRequester<RESPONSE_DATA> : IRetrofitRequester<SERVICE, RESPONSE_DATA>() {
         private var core = this@RetrofitServiceCore
-        private lateinit var api: API.() -> Observable<RESPONSE_DATA>
-        /**
-         * 错误拦截器链表
-         */
-        private var errorInterceptorLinked: ErrorInterceptorNode? = null
+        private var lifecycleObserver: WeakReference<IHttpDestroyedObserver?>? = null
+        private lateinit var callApi: SERVICE.() -> Observable<RESPONSE_DATA>
+        private lateinit var config: HttpConfig
         /**
          * 开始
          */
@@ -153,37 +183,30 @@ abstract class RetrofitServiceCore<API> : AbsRetrofitServiceCore<API>(), ISSL {
          */
         private var onSuccess: (RESPONSE_DATA.() -> Unit)? = null
         private var composer: ObservableTransformer<RESPONSE_DATA, RESPONSE_DATA>? = null
-        private var lifecycleObserver: WeakReference<IHttpDestroyedObserver?>? = null
         private var mDisposable: WeakReference<Disposable?>? = null
 
-        override fun newRequest(request: API.() -> Observable<RESPONSE_DATA>): IRetrofitRequester<API, RESPONSE_DATA> {
-            this.api = request
-            return this
-        }
-
-        override fun lifecycleObserver(lifecycleObserver: () -> IHttpDestroyedObserver): IRetrofitRequester<API, RESPONSE_DATA> {
+        override fun lifecycleObserver(lifecycleObserver: () -> IHttpDestroyedObserver): IRetrofitRequester<SERVICE, RESPONSE_DATA> {
             this.lifecycleObserver = WeakReference(lifecycleObserver())
             return this
         }
 
-        override fun compose(composer: ObservableTransformer<RESPONSE_DATA, RESPONSE_DATA>): IRetrofitRequester<API, RESPONSE_DATA> {
+       override fun api(api: SERVICE.() -> Observable<RESPONSE_DATA>): IRetrofitRequester<SERVICE, RESPONSE_DATA> {
+            this.callApi = api
+            return this
+        }
+
+        override fun config(config: HttpConfig): IRetrofitRequester<SERVICE, RESPONSE_DATA> {
+            this.config = config
+            return this
+        }
+
+        override fun compose(composer: ObservableTransformer<RESPONSE_DATA, RESPONSE_DATA>): IRetrofitRequester<SERVICE, RESPONSE_DATA> {
             this.composer = composer
             return this
         }
 
-        /**
-         * 该方法适用于，如果该错误只想自己消费掉，
-         * 并不想让全局的或者其他的拦截器拦截消费，
-         * 那么[ErrorInterceptorNode.onInterceptError] Return true
-         */
-        override fun addErrorInterceptor(errorInterceptorNode: ErrorInterceptorNode): IRetrofitRequester<API, RESPONSE_DATA> {
-            errorInterceptorNode.next = this.errorInterceptorLinked
-                ?: core.selfServiceApiErrorInterceptor
-            this.errorInterceptorLinked = errorInterceptorNode
-            return this
-        }
 
-        override fun onStart(onStart: () -> Unit): IRetrofitRequester<API, RESPONSE_DATA> {
+        override fun onStart(onStart: () -> Unit): IRetrofitRequester<SERVICE, RESPONSE_DATA> {
             this.onStart = onStart
             return this
         }
@@ -191,26 +214,31 @@ abstract class RetrofitServiceCore<API> : AbsRetrofitServiceCore<API>(), ISSL {
         /**
          * @param onFailed 业务层返回true是代表业务层处理了该错误码，否则该错误码交给框架层进行娄底处理
          */
-        override fun onFailed(onFailed: (Int, String) -> Boolean): IRetrofitRequester<API, RESPONSE_DATA> {
+        override fun onFailed(onFailed: (Int, String) -> Boolean): IRetrofitRequester<SERVICE, RESPONSE_DATA> {
             this.onFailed = onFailed
             return this
         }
 
-        override fun onSuccess(onSuccess: RESPONSE_DATA?.() -> Unit): IRetrofitRequester<API, RESPONSE_DATA> {
+        override fun onSuccess(onSuccess: RESPONSE_DATA?.() -> Unit): IRetrofitRequester<SERVICE, RESPONSE_DATA> {
             this.onSuccess = onSuccess
             return this
         }
 
-        override fun onCancel(onCancel: () -> Unit): IRetrofitRequester<API, RESPONSE_DATA> {
+        override fun onCancel(onCancel: () -> Unit): IRetrofitRequester<SERVICE, RESPONSE_DATA> {
             this.onCancel = onCancel
             return this
         }
 
-        override fun request(): IRetrofitRequester<API, RESPONSE_DATA> {
+        override fun request(): IRetrofitRequester<SERVICE, RESPONSE_DATA> {
             core.realRequest(
-                api = api,
+                retrofit = if (config == this@RetrofitServiceCore.defaultConfig) {
+                    this@RetrofitServiceCore.defaultRetrofit
+                } else {
+                    this@RetrofitServiceCore.generateRetrofit(config)
+                },
+                callApi = callApi,
+                errorInterceptor = config.apiErrorInterceptorNode,
                 composer = composer ?: RxSchedulers.applyRetrofitHttpDefaultSchedulers(),
-                errorInterceptor = errorInterceptorLinked ?: core.selfServiceApiErrorInterceptor,
                 onStart = { disposable ->
                     addRequester2Manager(disposable)
                     onStart?.invoke()
@@ -273,20 +301,6 @@ abstract class RetrofitServiceCore<API> : AbsRetrofitServiceCore<API>(), ISSL {
             this.onCancel = requesterObserver.onCancel
             this.onSuccess = requesterObserver.onSuccess
             this.onFailed = requesterObserver.onFailed
-            errorInterceptorLinked = null
-            requesterObserver.errorInterceptor?.apply {
-                addErrorInterceptor(this)
-            }
-        }
-    }
-
-    /**
-     * Log拦截器
-     */
-    protected object CommonLogInterceptor : HttpLoggingInterceptor.Logger {
-
-        override fun log(message: String) {
-            Log.i(javaClass.simpleName, message)
         }
     }
 
@@ -296,28 +310,37 @@ abstract class RetrofitServiceCore<API> : AbsRetrofitServiceCore<API>(), ISSL {
     /*****SSL相关******/
     override fun getHostnameVerifier() = SSLFactory.DEFAULT.getHostnameVerifier()
 
+
     /**
      * 生成retrofit
      */
-    override fun generateRetrofit(): Retrofit {
+    override fun generateDefaultRetrofit(): Retrofit {
+        return generateRetrofit(defaultConfig)
+    }
+
+    private fun generateRetrofit(config: IHttpConfig): Retrofit {
+        val host = config.check(config.host, "host")
+        val connectTimeOut = config.check(config.connectTimeOut, "connectTimeOut")
+        val writeTimeOut = config.check(config.writeTimeOut, "writeTimeOut")
+        val readTimeOut = config.check(config.readTimeOut, "readTimeOut")
+
+
         val okHttpBuilder = OkHttpClient.Builder()
-        //builder.cookieJar(cookieJar);
-        addCommonUrlParams(okHttpBuilder)
-        addCommonHeaders(okHttpBuilder)
-//        okHttpBuilder.addCommonPostParams(mCommonPostRequestParams)
-        okHttpBuilder.addInterceptor(
-            HttpLoggingInterceptor(CommonLogInterceptor).setLevel(
-                HttpLoggingInterceptor.Level.BODY
-            )
-        )
-
-        okHttpBuilder.connectTimeout(mConnectTimeOut, TimeUnit.MILLISECONDS)
-        okHttpBuilder.writeTimeout(mWriteTimeOut, TimeUnit.MILLISECONDS)
-        okHttpBuilder.readTimeout(mReadTimeOut, TimeUnit.MILLISECONDS)
-
+        okHttpBuilder.connectTimeout(connectTimeOut, TimeUnit.MILLISECONDS)
+        okHttpBuilder.writeTimeout(writeTimeOut, TimeUnit.MILLISECONDS)
+        okHttpBuilder.readTimeout(readTimeOut, TimeUnit.MILLISECONDS)
 
         // 错误重连
         okHttpBuilder.retryOnConnectionFailure(true)
+
+        addCommonHeaders(okHttpBuilder, config.commonHeader)
+        addCommonUrlParams(okHttpBuilder, config.commonUrlQueryParams)
+
+        okHttpBuilder.addInterceptor(
+            HttpLoggingInterceptor(HttpLoggingInterceptor.Logger { message ->
+                config.logger?.log(message)
+            }).setLevel(HttpLoggingInterceptor.Level.BODY)
+        )
 
         // https手机无须安装代理软件的证书就可以明文查看数据
         if (BuildConfig.DEBUG) {
@@ -329,56 +352,50 @@ abstract class RetrofitServiceCore<API> : AbsRetrofitServiceCore<API>(), ISSL {
             }
         }
 
-        /*int[] certificates = {R.raw.myssl};//cer文件
-        String hosts[] = {HConst.BASE_DEBUG_URL, HConst.BASE_PREVIEW_URL, HConst.BASE_RELEASE_URL, HConst.BASE_RELEASE_SHARE_URL};
-        builder.socketFactory(HttpsFactroy.getSSLSocketFactory(context, certificates));
-        builder.hostnameVerifier(HttpsFactroy.getHostnameVerifier(hosts));*/
-        val retrofit: Retrofit = Retrofit.Builder()
+        return Retrofit.Builder()
+            .baseUrl(host)
             .client(okHttpBuilder.build())
-            .baseUrl(mHost)
             .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
             .addConverterFactory(GsonConverterFactory.create())
             .build()
-        return retrofit
     }
 
     /**
      * 发送网络请求
      */
     private fun <RESPONSE_DATA> realRequest(
-        api: API.() -> Observable<RESPONSE_DATA>,
+        retrofit: Retrofit,
+        callApi: SERVICE.() -> Observable<RESPONSE_DATA>,
         composer: ObservableTransformer<RESPONSE_DATA, RESPONSE_DATA>,
-        errorInterceptor: ErrorInterceptorNode? = null,
+        errorInterceptor: ApiErrorInterceptorNode? = null,
         onFailed: (Int, String) -> Boolean,
         onSuccess: (RESPONSE_DATA) -> Unit,
         onStart: (Disposable) -> Unit,
         onComplete: () -> Unit
     ) {
-        super.request(api, composer)
-            .subscribe(object : HttpCommonObserver<RESPONSE_DATA>(
-                errorInterceptor,
-                onFailed,
-                onSuccess
-            ) {
+        super.request(
+            retrofit,
+            callApi,
+            composer,
+            errorInterceptor,
+            onFailed,
+            onSuccess,
+            onStart,
+            onComplete
+        )
 
-                override fun onComplete() {
-                    onComplete()
-                }
-
-                override fun onSubscribe(d: Disposable) {
-                    onStart(d)
-                }
-
-            })
     }
-}
 
+}
 
 
 /**
  * 设置完api，接下来你构建请求网络相关的
  */
-fun <API,RESPONSE_DATA> RetrofitServiceCore<API>.RequesterBuilderCreator<RESPONSE_DATA>.thenCall(init: RetrofitServiceCore<API>.RequesterBuilder<RESPONSE_DATA>.() -> Unit): IRequester {
+@HttpDsl
+fun <API, RESPONSE_DATA> RetrofitServiceCore<API>.RequesterBuilderCreator<RESPONSE_DATA>.thenCall(
+    init: RetrofitServiceCore<API>.RequesterBuilder<RESPONSE_DATA>.() -> Unit
+): IRequester {
     val requesterBuilder = create()
     requesterBuilder.init()
     val requester = requesterBuilder.build()

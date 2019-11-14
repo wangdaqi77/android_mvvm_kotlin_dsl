@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.wongki.framework.kotlin
+package com.wongki.framework.kt
 
 import java.io.Serializable
 import kotlin.reflect.KProperty

@@ -15,7 +15,7 @@
  */
 package com.wongki.framework.kpref
 
-import com.wongki.framework.kotlin.ILazyResettable
+import com.wongki.framework.kt.ILazyResettable
 
 /**
  * Created by Allan Wang on 2017-06-07.

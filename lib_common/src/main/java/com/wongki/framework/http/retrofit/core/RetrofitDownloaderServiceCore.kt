@@ -1,12 +1,10 @@
 package com.wongki.framework.http.retrofit.core
 
-import android.util.Log
-import com.wongki.framework.http.HttpCode
+import com.wongki.framework.http.HttpErrorCode
 import com.wongki.framework.http.base.IRequester
-import com.wongki.framework.http.interceptor.ErrorInterceptorNode
+import com.wongki.framework.http.interceptor.ApiErrorInterceptorNode
 import com.wongki.framework.http.retrofit.converter.GsonConverterFactory
 import com.wongki.framework.http.retrofit.lifecycle.IHttpDestroyedObserver
-import com.wongki.framework.http.retrofit.observer.HttpCommonObserver
 import io.reactivex.Observable
 import io.reactivex.ObservableTransformer
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -33,9 +31,6 @@ import java.util.concurrent.TimeUnit
  */
 abstract class RetrofitDownloaderServiceCore<API> : AbsRetrofitServiceCore<API>() {
 
-    override fun getCommonRequestHeader(): MutableMap<String, String> = mutableMapOf()
-    override fun getCommonUrlRequestParams(): MutableMap<String, String> = mutableMapOf()
-
 
     /**
      * 用于构建网络请求器
@@ -58,11 +53,6 @@ abstract class RetrofitDownloaderServiceCore<API> : AbsRetrofitServiceCore<API>(
      */
     open inner class RetrofitDownloadRequester : IRequester {
         private lateinit var api: API.() -> Observable<ResponseBody>
-        /**
-         * 拦截处理错误码
-         * 优先级：[addErrorInterceptor] > [RetrofitDownloaderServiceCore.selfServiceApiErrorInterceptor] > [Glo.onError]
-         */
-        private var errorInterceptorLinked: ErrorInterceptorNode? = null
         /**
          * 开始
          */
@@ -101,13 +91,6 @@ abstract class RetrofitDownloaderServiceCore<API> : AbsRetrofitServiceCore<API>(
             }
             this.filePath = filePath
             this.api = request
-            return this
-        }
-
-        fun addErrorInterceptor(errorInterceptorNode: ErrorInterceptorNode): RetrofitDownloadRequester {
-            errorInterceptorNode.next = this.errorInterceptorLinked
-                ?: this@RetrofitDownloaderServiceCore.selfServiceApiErrorInterceptor
-            this.errorInterceptorLinked = errorInterceptorNode
             return this
         }
 
@@ -159,10 +142,9 @@ abstract class RetrofitDownloaderServiceCore<API> : AbsRetrofitServiceCore<API>(
         override fun request(): RetrofitDownloadRequester {
             // 添加拦截器
             realRequestOnLifecycle(
-                api = api,
+                callApi = api,
                 composer = applyDefaultSchedulers(filePath),
-                errorInterceptor = errorInterceptorLinked
-                    ?: this@RetrofitDownloaderServiceCore.selfServiceApiErrorInterceptor,
+                errorInterceptor = this@RetrofitDownloaderServiceCore.defaultConfig.apiErrorInterceptorNode,
                 onStart = { disposable ->
                     this.mDisposable = WeakReference(disposable)
                     //添加请求
@@ -239,9 +221,9 @@ abstract class RetrofitDownloaderServiceCore<API> : AbsRetrofitServiceCore<API>(
                 }
 
             } catch (e: FileNotFoundException) {
-                onFailed?.invoke(HttpCode.FILE_NOT_FOUND_FAILED, e.message ?: "")
+                onFailed?.invoke(HttpErrorCode.FILE_NOT_FOUND_FAILED, e.message ?: "")
             } catch (e: IOException) {
-                onFailed?.invoke(HttpCode.FILE_WRITE_FAILED, e.message ?: "")
+                onFailed?.invoke(HttpErrorCode.FILE_WRITE_FAILED, e.message ?: "")
             } finally {
                 fos.safeClose()
                 inputString.safeClose()
@@ -345,90 +327,68 @@ abstract class RetrofitDownloaderServiceCore<API> : AbsRetrofitServiceCore<API>(
     }
 
     /**
-     * Log拦截器
-     */
-    protected object CommonLogInterceptor : HttpLoggingInterceptor.Logger {
-
-        override fun log(message: String) {
-            Log.i(javaClass.simpleName, message)
-        }
-    }
-
-    /**
      * 生成retrofit
      */
-    override fun generateRetrofit(): Retrofit {
+    override fun generateDefaultRetrofit(): Retrofit {
+        val config = defaultConfig
+
+        val host = config.check(config.host, "host")
+        val connectTimeOut = config.check(config.connectTimeOut, "connectTimeOut")
+        val writeTimeOut = config.check(config.writeTimeOut, "writeTimeOut")
+        val readTimeOut = config.check(config.readTimeOut, "readTimeOut")
+
+
         val okHttpBuilder = OkHttpClient.Builder()
-        //builder.cookieJar(cookieJar);
-        addCommonUrlParams(okHttpBuilder)
-        addCommonHeaders(okHttpBuilder)
-        okHttpBuilder.addInterceptor(
-            HttpLoggingInterceptor(CommonLogInterceptor).setLevel(
-                HttpLoggingInterceptor.Level.BODY
-            )
-        )
-        okHttpBuilder.addInterceptor(DownloadInterceptor)
-
-        okHttpBuilder.connectTimeout(mConnectTimeOut, TimeUnit.MILLISECONDS)
-        okHttpBuilder.writeTimeout(mWriteTimeOut, TimeUnit.MILLISECONDS)
-        okHttpBuilder.readTimeout(mReadTimeOut, TimeUnit.MILLISECONDS)
-
+        okHttpBuilder.connectTimeout(connectTimeOut, TimeUnit.MILLISECONDS)
+        okHttpBuilder.writeTimeout(writeTimeOut, TimeUnit.MILLISECONDS)
+        okHttpBuilder.readTimeout(readTimeOut, TimeUnit.MILLISECONDS)
 
         // 错误重连
         okHttpBuilder.retryOnConnectionFailure(true)
 
-//        if (BuildConfig.DEBUG) {
-//            getSSLSocketFactory()?.let {
-//                okHttpBuilder.sslSocketFactory(it)
-//            }
-//            getHostnameVerifier()?.let {
-//                okHttpBuilder.hostnameVerifier(it)
-//            }
-//        }
+        addCommonHeaders(okHttpBuilder, config.commonHeader)
+        addCommonUrlParams(okHttpBuilder, config.commonUrlQueryParams)
 
-        /*int[] certificates = {R.raw.myssl};//cer文件
-        String hosts[] = {HConst.BASE_DEBUG_URL, HConst.BASE_PREVIEW_URL, HConst.BASE_RELEASE_URL, HConst.BASE_RELEASE_SHARE_URL};
-        builder.socketFactory(HttpsFactroy.getSSLSocketFactory(context, certificates));
-        builder.hostnameVerifier(HttpsFactroy.getHostnameVerifier(hosts));*/
-        val retrofitBuilder: Retrofit.Builder = Retrofit.Builder()
+        okHttpBuilder.addInterceptor(
+            HttpLoggingInterceptor(HttpLoggingInterceptor.Logger { message ->
+                config.logger?.log(message)
+            }).setLevel(HttpLoggingInterceptor.Level.BODY)
+        )
 
-        if (mHost.isNotEmpty()) {
-            retrofitBuilder.baseUrl(mHost)
-        }
-        val retrofit =
-            retrofitBuilder
-                .client(okHttpBuilder.build())
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .addConverterFactory(GsonConverterFactory.create())
-                .build()
-        return retrofit
+        okHttpBuilder.addInterceptor(DownloadInterceptor)
+
+
+        return Retrofit.Builder()
+            .baseUrl(host)
+            .client(okHttpBuilder.build())
+            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
     }
 
     /**
      * 发送网络请求
      */
     private fun realRequestOnLifecycle(
-        api: API.() -> Observable<ResponseBody>,
+        callApi: API.() -> Observable<ResponseBody>,
         composer: ObservableTransformer<ResponseBody, InputStream>,
-        errorInterceptor: ErrorInterceptorNode? = null,
+        errorInterceptor: ApiErrorInterceptorNode? = null,
         onFailed: (Int, String) -> Boolean,
         onSuccess: (InputStream) -> Unit,
         onStart: (Disposable) -> Unit,
         onComplete: () -> Unit
     ) {
-        request(api, composer)
-            .subscribe(object :
-                HttpCommonObserver<InputStream>(errorInterceptor, onFailed, onSuccess) {
+        request(
+            defaultRetrofit,
+            callApi,
+            composer,
+            errorInterceptor,
+            onFailed,
+            onSuccess,
+            onStart,
+            onComplete
+        )
 
-                override fun onComplete() {
-                    onComplete()
-                }
-
-                override fun onSubscribe(d: Disposable) {
-                    onStart(d)
-                }
-
-            })
     }
 
 }

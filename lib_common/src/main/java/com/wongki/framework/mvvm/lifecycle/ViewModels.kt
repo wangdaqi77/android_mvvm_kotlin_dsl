@@ -13,10 +13,7 @@ import com.wongki.framework.mvvm.factory.LiveDataViewModelFactory
  * desc:    .
  */
 
-@DslMarker
-annotation class ViewModelFactoryDslMarker
-
-@ViewModelFactoryDslMarker
+@LiveDataViewModelDslMarker
 inline fun <reified T : ViewModel> FragmentActivity.viewModel(init: T.() -> Unit): T {
     val viewModelJavaClazz = T::class.java
     val viewModel = ViewModelProviders.of(this, LiveDataViewModelFactory).get(viewModelJavaClazz)
@@ -27,7 +24,7 @@ inline fun <reified T : ViewModel> FragmentActivity.viewModel(init: T.() -> Unit
     return viewModel
 }
 
-@ViewModelFactoryDslMarker
+@LiveDataViewModelDslMarker
 inline fun <reified T : ViewModel> Fragment.viewModel(init: T.() -> Unit): T {
     val viewModelJavaClazz = T::class.java
     val viewModel = ViewModelProviders.of(this, LiveDataViewModelFactory).get(viewModelJavaClazz)
@@ -38,7 +35,7 @@ inline fun <reified T : ViewModel> Fragment.viewModel(init: T.() -> Unit): T {
     return viewModel
 }
 
-@ViewModelFactoryDslMarker
+@LiveDataViewModelDslMarker
 class ViewModelBuilder {
 
 }

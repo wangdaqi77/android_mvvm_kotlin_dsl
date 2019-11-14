@@ -17,7 +17,7 @@ package com.wongki.framework.kpref
 
 import android.content.Context
 import android.content.SharedPreferences
-import com.wongki.framework.kotlin.ILazyResettable
+import com.wongki.framework.kt.ILazyResettable
 import com.wongki.framework.logging.KL
 
 /**

@@ -1,6 +1,6 @@
 package com.wongki.demo.model.remote
 
-import com.wongki.framework.http.retrofit.core.RetrofitServiceDslMarker
+import com.wongki.framework.http.HttpDsl
 
 /**
  * @author  wangqi
@@ -9,5 +9,5 @@ import com.wongki.framework.http.retrofit.core.RetrofitServiceDslMarker
  * desc:    .
  */
 
-@RetrofitServiceDslMarker
+@HttpDsl
 fun musicService(init:MusicServiceCore.()->Unit){MusicServiceCore.init()}

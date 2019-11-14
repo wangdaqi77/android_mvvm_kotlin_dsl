@@ -1,6 +1,6 @@
 package com.wongki.framework.http.retrofit.lifecycle
 
-import com.wongki.framework.http.lifecycle.HttpRequesterManager
+import com.wongki.framework.http.lifecycle.HttpLifecycleManager
 
 /**
  * @author  wangqi
@@ -9,18 +9,18 @@ import com.wongki.framework.http.lifecycle.HttpRequesterManager
  * desc:    一个缓存、遍历所有的生命周期管理器的帮助类
  */
 object HttpRequesterManagerHelper {
-    private val mLifecycle by lazy { ArrayList<HttpRequesterManager>() }
+    private val mLifecycle by lazy { ArrayList<HttpLifecycleManager>() }
     /**
      * 添加http生命周期管理器
      */
-    fun addRequesterManager(lifecycle: HttpRequesterManager) {
+    fun addRequesterManager(lifecycle: HttpLifecycleManager) {
         mLifecycle.add(lifecycle)
     }
 
     /**
      * 遍历http生命周期管理器
      */
-    fun forEachLifecycle(forOnEach: (HttpRequesterManager) -> Unit) {
+    fun forEachLifecycle(forOnEach: (HttpLifecycleManager) -> Unit) {
         mLifecycle.forEach(forOnEach)
     }
 }

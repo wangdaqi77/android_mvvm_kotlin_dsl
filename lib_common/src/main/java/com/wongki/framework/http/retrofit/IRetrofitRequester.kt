@@ -1,9 +1,10 @@
 package com.wongki.framework.http.retrofit
 
 import com.wongki.framework.http.base.IRequester
+import com.wongki.framework.http.config.HttpConfig
 import io.reactivex.Observable
 import io.reactivex.ObservableTransformer
-import com.wongki.framework.http.interceptor.ErrorInterceptorNode
+import com.wongki.framework.http.interceptor.ApiErrorInterceptorNode
 import com.wongki.framework.http.retrofit.lifecycle.IHttpDestroyedObserver
 
 /**
@@ -12,20 +13,21 @@ import com.wongki.framework.http.retrofit.lifecycle.IHttpDestroyedObserver
  * email:   wangqi7676@163.com
  * desc:    请求器
  */
-abstract class IRetrofitRequester<API, RESPONSE_DATA> : IRequester {
-    abstract fun newRequest(request: (API) -> Observable<RESPONSE_DATA>): IRetrofitRequester<API, RESPONSE_DATA>
+abstract class IRetrofitRequester<SERVICE, RESPONSE_DATA> : IRequester {
 
-    abstract fun lifecycleObserver(lifecycleObserver: ()-> IHttpDestroyedObserver): IRetrofitRequester<API, RESPONSE_DATA>
+    abstract fun lifecycleObserver(lifecycleObserver: () -> IHttpDestroyedObserver): IRetrofitRequester<SERVICE, RESPONSE_DATA>
 
-    abstract  fun compose(composer: ObservableTransformer<RESPONSE_DATA, RESPONSE_DATA>): IRetrofitRequester<API, RESPONSE_DATA>
+    abstract fun api(api: SERVICE.() -> Observable<RESPONSE_DATA>): IRetrofitRequester<SERVICE, RESPONSE_DATA>
 
-    abstract  fun addErrorInterceptor(errorInterceptorNode: ErrorInterceptorNode): IRetrofitRequester<API, RESPONSE_DATA>
+    abstract fun config(config: HttpConfig): IRetrofitRequester<SERVICE, RESPONSE_DATA>
 
-    abstract  fun onStart(onStart: () -> Unit): IRetrofitRequester<API, RESPONSE_DATA>
+    abstract fun compose(composer: ObservableTransformer<RESPONSE_DATA, RESPONSE_DATA>): IRetrofitRequester<SERVICE, RESPONSE_DATA>
 
-    abstract  fun onFailed(onFailed: (Int, String) -> Boolean): IRetrofitRequester<API, RESPONSE_DATA>
+    abstract fun onStart(onStart: () -> Unit): IRetrofitRequester<SERVICE, RESPONSE_DATA>
 
-    abstract fun onSuccess(onSuccess: RESPONSE_DATA?.() -> Unit): IRetrofitRequester<API, RESPONSE_DATA>
+    abstract fun onFailed(onFailed: (Int, String) -> Boolean): IRetrofitRequester<SERVICE, RESPONSE_DATA>
 
-    abstract  fun onCancel(onCancel: () -> Unit): IRetrofitRequester<API, RESPONSE_DATA>
+    abstract fun onSuccess(onSuccess: RESPONSE_DATA?.() -> Unit): IRetrofitRequester<SERVICE, RESPONSE_DATA>
+
+    abstract fun onCancel(onCancel: () -> Unit): IRetrofitRequester<SERVICE, RESPONSE_DATA>
 }

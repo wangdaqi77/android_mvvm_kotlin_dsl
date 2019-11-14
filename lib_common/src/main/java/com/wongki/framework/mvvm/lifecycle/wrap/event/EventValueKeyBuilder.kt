@@ -2,7 +2,6 @@ package com.wongki.framework.mvvm.lifecycle.wrap.event
 
 import com.wongki.framework.mvvm.lifecycle.ILiveDataKeyBuilder
 import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
-import com.wongki.framework.mvvm.lifecycle.exception.DslRejectedException
 import kotlin.reflect.KClass
 
 /**
