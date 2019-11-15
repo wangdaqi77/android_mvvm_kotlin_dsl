@@ -23,6 +23,7 @@ class EventLiveDataArrayListSetterBuilder<T : Any> : DslEventValueKeyBuilder() {
         }
 
 
+    @LiveDataViewModelDslMarker
     fun value(init: EventValueBuilder<ArrayList<T>>.()->Unit) {
         val dataWrapperBuilder =
             EventValueBuilder<ArrayList<T>>()
@@ -30,7 +31,7 @@ class EventLiveDataArrayListSetterBuilder<T : Any> : DslEventValueKeyBuilder() {
         this.value = dataWrapperBuilder.build()
     }
 
-    internal fun check() {
-        if (setValueCount == 0) throw NoSetValueException(getKey())
+    internal fun check(keyPrefix:String) {
+        if (setValueCount == 0) throw NoSetValueException(buildKey(keyPrefix))
     }
 }

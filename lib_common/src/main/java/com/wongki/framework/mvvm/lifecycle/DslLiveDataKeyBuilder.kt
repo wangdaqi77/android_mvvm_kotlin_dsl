@@ -7,15 +7,16 @@ package com.wongki.framework.mvvm.lifecycle
  * email:   wangqi7676@163.com
  * desc:    .
  */
-open class DslLiveDataKeyBuilder {
+open class DslLiveDataKeyBuilder:ILiveDataKeyBuilder<LiveDataKey> {
     var keyBuilder: LiveDataKeyBuilder = LiveDataKeyBuilder()
 
+    @LiveDataViewModelDslMarker
     fun key(init: LiveDataKeyBuilder.() -> Unit) {
         keyBuilder.init()
     }
 
-    fun getKey(): LiveDataKey {
-        return keyBuilder.buildKey()
+    override fun buildKey(keyPrefix:String): LiveDataKey {
+        return keyBuilder.buildKey(keyPrefix)
     }
 
 

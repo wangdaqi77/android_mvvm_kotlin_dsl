@@ -91,6 +91,7 @@ open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataVi
     override val mEventLiveDatas: HashMap<LiveDataKey, EventLiveData<*>?> = HashMap()
     internal lateinit var lifecycleOwnerRef: WeakReference<LifecycleOwner?>
 
+    @LiveDataViewModelDslMarker
     @Suppress("UNCHECKED_CAST")
     inline fun <reified T : Any> attachObserve(init: ILiveDataViewModel.LiveDataBuilder<T>.() -> Unit): MutableLiveData<T> {
         val builder = ILiveDataViewModel.LiveDataBuilder<T>()
@@ -103,6 +104,7 @@ open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataVi
         return super.attachObserve(builder)
     }
 
+    @LiveDataViewModelDslMarker
     @Suppress("UNCHECKED_CAST")
     inline fun <reified T : Any> attachEventObserve(init: IEventLiveDataViewModel.EventLiveDataBuilder<T>.() -> Unit): EventLiveData<T> {
         val builder = IEventLiveDataViewModel.EventLiveDataBuilder<T>()
@@ -116,6 +118,7 @@ open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataVi
         return super.attachEventObserve(builder)
     }
 
+    @LiveDataViewModelDslMarker
     @Suppress("UNCHECKED_CAST")
     inline fun <reified ITEM : Any> attachEventObserveForArrayList(init: IEventLiveDataViewModel.EventLiveDataArrayListBuilder<ITEM>.() -> Unit): EventLiveData<ArrayList<ITEM>> {
         val builder = IEventLiveDataViewModel.EventLiveDataArrayListBuilder<ITEM>()
@@ -132,6 +135,7 @@ open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataVi
     /**
      * 设置数据
      */
+    @LiveDataViewModelDslMarker
     inline fun <reified T : Any> setValue(init: LiveDataSetterBuilder<T>.() -> Unit) {
         val builder = LiveDataSetterBuilder<T>()
         builder.init()
@@ -144,8 +148,9 @@ open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataVi
     }
 
     /**
-     * 获取key
+     * 获取数据
      */
+    @LiveDataViewModelDslMarker
     inline fun <reified T : Any> getValue(init: LiveDataGetterBuilder<T>.() -> Unit): T? {
         val builder = LiveDataGetterBuilder<T>()
         builder.init()
@@ -159,8 +164,9 @@ open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataVi
 
 
     /**
-     * 获取key
+     * 设置事件数据
      */
+    @LiveDataViewModelDslMarker
     inline fun <reified T : Any> setEventValue(init: EventLiveDataSetterBuilder<T>.() -> Unit) {
         val builder = EventLiveDataSetterBuilder<T>()
         builder.init()
@@ -173,8 +179,9 @@ open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataVi
     }
 
     /**
-     * 获取key
+     * 设置list类型的事件数据
      */
+    @LiveDataViewModelDslMarker
     inline fun <reified ITEM : Any> setEventValueForArrayList(init: EventLiveDataArrayListSetterBuilder<ITEM>.() -> Unit) {
         val builder = EventLiveDataArrayListSetterBuilder<ITEM>()
         builder.init()
@@ -187,8 +194,9 @@ open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataVi
     }
 
     /**
-     * 获取值
+     * 获取事件数据
      */
+    @LiveDataViewModelDslMarker
     inline fun <reified T : Any> getEventValue(init: EventLiveDataGetterBuilder<T>.() -> Unit): EventValue<T>? {
         val builder = EventLiveDataGetterBuilder<T>()
         builder.init()
@@ -201,8 +209,9 @@ open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataVi
     }
 
     /**
-     * 获取值
+     * 获取list类型的事件数据
      */
+    @LiveDataViewModelDslMarker
     inline fun <reified ITEM : Any> getEventValueForArrayList(init: EventLiveDataArrayListGetterBuilder<ITEM>.() -> Unit): EventValue<ArrayList<ITEM>>? {
         val builder = EventLiveDataArrayListGetterBuilder<ITEM>()
         builder.init()
@@ -219,6 +228,7 @@ open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataVi
      * &&
      * 在通知UI前观察数据
      */
+    @LiveDataViewModelDslMarker
     @Suppress("UNCHECKED_CAST")
     inline fun <API, reified RESPONSE_DATA : Any> RetrofitServiceCore<API>.RequesterBuilder<MyResponse<RESPONSE_DATA>>.observeAndTransformEventObserver(
         crossinline init: EventValueObserverBuilder<RESPONSE_DATA>.() -> Unit = {}
@@ -301,6 +311,7 @@ open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataVi
      * &&
      * 在通知UI前观察数据
      */
+    @LiveDataViewModelDslMarker
     @Suppress("UNCHECKED_CAST")
     inline fun <API, reified ITEM : Any> RetrofitServiceCore<API>.RequesterBuilder<MyResponse<ArrayList<ITEM>>>.observeAndTransformEventObserverForArrayList(
         crossinline init: EventValueObserverBuilder<ArrayList<ITEM>>.() -> Unit = {}

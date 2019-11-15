@@ -18,12 +18,13 @@ open class LiveDataSetterBuilder<T : Any> : DslLiveDataKeyBuilder() {
         }
 
 
+    @LiveDataViewModelDslMarker
     fun value(init: () -> T?) {
         this.value = init()
     }
 
 
-    internal fun check() {
-        if (setValueCount == 0) throw NoSetValueException(getKey())
+    internal fun check(keyPrefix:String) {
+        if (setValueCount == 0) throw NoSetValueException(buildKey(keyPrefix))
     }
 }

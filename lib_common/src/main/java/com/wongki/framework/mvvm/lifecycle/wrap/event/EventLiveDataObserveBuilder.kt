@@ -12,5 +12,6 @@ import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
 
 @LiveDataViewModelDslMarker
 class EventLiveDataObserveBuilder<T> : EventValueObserverBuilder<T>() {
+    @LiveDataViewModelDslMarker
     var owner: LifecycleOwner? = null
 }

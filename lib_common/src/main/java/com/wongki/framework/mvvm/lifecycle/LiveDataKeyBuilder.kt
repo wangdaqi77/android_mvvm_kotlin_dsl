@@ -13,15 +13,16 @@ open class LiveDataKeyBuilder : ILiveDataKeyBuilder<LiveDataKey> {
         internal const val DEFAULT = ""
     }
 
+    @LiveDataViewModelDslMarker
     var method: String = DEFAULT
 
-    override fun check():Boolean = method != DEFAULT
+    fun check():Boolean = method != DEFAULT
     /**
      * TODO 可以优化，key存在过就用之前的
      */
-    override fun buildKey():LiveDataKey {
+    override fun buildKey(keyPrefix:String):LiveDataKey {
         return LiveDataKey().apply {
-            key = this@LiveDataKeyBuilder.method
+            key = "$keyPrefix:${this@LiveDataKeyBuilder.method}"
         }
     }
 

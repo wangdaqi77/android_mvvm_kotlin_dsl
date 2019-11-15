@@ -29,7 +29,7 @@ class EventLiveDataSetterBuilder<T : Any> : DslEventValueKeyBuilder() {
         this.value = dataWrapperBuilder.build()
     }
 
-    internal fun check() {
-        if (setValueCount == 0) throw NoSetValueException(getKey())
+    internal fun check(keyPrefix:String) {
+        if (setValueCount == 0) throw NoSetValueException(buildKey(keyPrefix))
     }
 }

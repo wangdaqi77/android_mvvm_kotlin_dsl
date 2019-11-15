@@ -8,6 +8,5 @@ package com.wongki.framework.mvvm.lifecycle
  */
 @LiveDataViewModelDslMarker
 interface ILiveDataKeyBuilder<KEY : LiveDataKey> {
-    fun check():Boolean
-    fun buildKey():KEY
+    fun buildKey(keyPrefix:String):KEY
 }

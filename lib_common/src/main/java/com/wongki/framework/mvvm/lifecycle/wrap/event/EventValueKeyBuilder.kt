@@ -19,11 +19,11 @@ open class EventValueKeyBuilder : ILiveDataKeyBuilder<EventValueKey> {
     internal lateinit var type: EventValueType
     var kClass: KClass<*> = DEFAULT
 
-    override fun check(): Boolean = kClass != DEFAULT
+    fun check(): Boolean = kClass != DEFAULT
 
-    override fun buildKey() = EventValueKey().apply {
+    override fun buildKey(keyPrefix:String) = EventValueKey().apply {
         key =
-            "${this@EventValueKeyBuilder.type.name}-${this@EventValueKeyBuilder.kClass.qualifiedName}"
+            "$keyPrefix:${this@EventValueKeyBuilder.type.name}<${this@EventValueKeyBuilder.kClass.qualifiedName}>"
     }
 
 }

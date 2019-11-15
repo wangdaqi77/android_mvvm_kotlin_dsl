@@ -45,7 +45,7 @@ abstract class HttpCommonObserver<T>(
         var times = 0
         while (errorInterceptor != null && !isProcessed) {
             isProcessed = errorInterceptor.onInterceptError(code, msg)
-            gInner.logger?.log("\nTAG-${errorInterceptor.tag}-> code:$code,第${++times}次拦截状态：$isProcessed \n info:$msg")
+            gInner.logger?.log("\nTAG-${errorInterceptor.tag} -> code:$code,第${++times}次拦截状态：$isProcessed \n message:$msg")
             errorInterceptor = errorInterceptor.next
         }
 
