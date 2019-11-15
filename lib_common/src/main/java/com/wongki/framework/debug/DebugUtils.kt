@@ -15,7 +15,7 @@ internal val isDebug = BuildConfig.DEBUG
 
 
 /*
-val arrayList = ArrayList<ArrayList<SearchMusic.Item>>()
+val arrayList = ArrayList<ArrayList<SearchMusic.Response.Item>>()
 java.simpleName:ArrayList
 java.name:java.util.ArrayList
 java.canonicalName:java.util.ArrayList
@@ -27,7 +27,7 @@ kClass.simpleName:ArrayList
 kClass.qualifiedName:java.util.ArrayList
 kClass.typeParameters:1,E
 
-val arrayList = arrayOf<CommonResponse<SearchMusic.Item>>()
+val arrayList = arrayOf<CommonResponse<SearchMusic.Response.Item>>()
 java.simpleName:CommonResponse[]
 java.name:[Lcom.wongki.framework.model.domain.CommonResponse;
 java.canonicalName:com.wongki.framework.model.domain.CommonResponse[]

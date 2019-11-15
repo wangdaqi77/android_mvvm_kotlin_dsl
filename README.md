@@ -47,8 +47,10 @@ fun setUserName(name:String) {
 #### 1.[LiveDataViewModel.getValue]常规无状态
 #### 2.[LiveDataViewModel.getEventValue]异步场景有状态
 #### 3.[LiveDataViewModel.getEventValueForArrayList]异步场景ArrayList有状态
-装载订阅(attachObserve)时生命周期的提供者默认值为创建ViewModel时的LifecycleOwner对象，详情请查看[FragmentActivity.viewModel]和[Fragment.viewModel]的拓展函数,以及[ILiveDataViewModel.attachObserve]等装载订阅函数，如果你需要为LiveData提供其他的LifecycleOwner，那么需要在装载订阅时覆盖掉默认值
 
+### 注意
+#### 1.有状态的不支持设置key（也就是说有状态的同一个类型只能存在一个LiveData）！
+#### 2.装载订阅时LiveData的LifecycleOwner默认为创建ViewModel时的LifecycleOwner对象，详情请查看[FragmentActivity.viewModel]和[Fragment.viewModel]拓展函数[setLifecycleOwner],以及[ILiveDataViewModel.attachObserve]等装载订阅函数，如果你需要为LiveData提供其他的LifecycleOwner，那么需要在装载订阅时设置owner
 ```
 viewModel<XXViewModel> {
     attachObserve {
@@ -106,9 +108,9 @@ viewModel<MusicViewModel> {
 
     
     // 搜索音乐
-    attachEventObserveForArrayList<SearchMusic.Item> {
+    attachEventObserveForArrayList<SearchMusic.Response.Item> {
         
-        // 订阅，观察网络请求状态和结果
+        // 订阅，观察状态和结果
         observe {
             owner = this@MainActivity
             onStart {}
@@ -131,24 +133,59 @@ viewModel<MusicViewModel> {
 ```
 
 ### 需要实现的类
-#### 1.编写Retrofit的Service接口
+#### 1.Retrofit的Service接口
 ```kotlin
 interface MusicApi {
     @GET("/searchMusic")
-    fun searchMusic(@Query("name")name:String):Observable<CommonResponse<ArrayList<SearchMusic.Item>>>
+    fun searchMusic(@Query("name")name:String):Observable<CommonResponse<ArrayList<SearchMusic.Response.Item>>>
 }
 ```
-#### 2.编写ViewModel
+
+#### 2.音乐仓库
+##### 音乐仓库接口
 ```kotlin
-class MusicViewModel : LiveDataViewModel() {
+interface IMusicRepo {
+    /**
+     * 搜索音乐
+     * @param name 要搜索的音乐名称
+     * @param init 网络请求观察者构建器
+     */
+    fun searchMusic(name:String,init: EventObserverBuilder<MyResponse<ArrayList<SearchMusic.Response.Item>>>.()->Unit)
+}
+```
+##### 实现音乐仓库接口（必须继承BaseRepository）
+```kotlin
+class MusicRepo : BaseRepository(), IMusicRepo {
+
+    /**
+     * 搜索音乐
+     * @param name 要搜索的音乐名称
+     * @param init 网络请求观察者构建器
+     */
+    override fun searchMusic(name: String, init: EventObserverBuilder<MyResponse<ArrayList<SearchMusic.Response.Item>>>.() -> Unit) {
+        musicService {
+            api { searchMusic(name) }.thenCall {
+                lifecycleObserver = this@MusicRepo
+                observer(init)
+            }
+        }
+    }
+    
+}
+```
+
+#### 3.音乐ViewModel（必须继承LiveDataViewModel）
+```kotlin
+class MusicViewModel : LiveDataViewModel<MusicRepo>() {
 
     fun searchMusic(name: String) {
-        // 请求服务器获取搜索结果
-        musicService {
+        // 打开仓库
+        repository {
             
-            api { searchMusic(name = name) }.thenCall {
+            // 在音乐仓库搜索音乐
+            searchMusic(name) {
                 /**
-                 * 网络请求的观察器转换成EventValue通知[MusicActivity.attachEventObserveForArrayList<SearchMusic.Item>]
+                 * 网络请求的观察器转换成EventValue通知[MusicActivity.attachEventObserveForArrayList<SearchMusic.Response.Item>]
                  * &&
                  * 在通知UI前观察数据（设置搜索结果总数和设置结果列表）
                  */
@@ -159,18 +196,19 @@ class MusicViewModel : LiveDataViewModel() {
                         // 设置结果列表
                         this@MusicViewModel.setResultList(this)
                     }
-
                 }
 
             }
             
+
         }
+
 
     }
 
     
     // 设置搜索结果总数
-    private fun setTotalCount(list: ArrayList<SearchMusic.Item>?) {
+    private fun setTotalCount(list: ArrayList<SearchMusic.Response.Item>?) {
         // 更新数据，通知订阅的位置
         setValue<Int> {
             key{
@@ -182,7 +220,7 @@ class MusicViewModel : LiveDataViewModel() {
     }
     
     // 设置结果列表
-    private fun setResultList(list: ArrayList<SearchMusic.Item>?) {
+    private fun setResultList(list: ArrayList<SearchMusic.Response.Item>?) {
         var result = ""
         list?.apply {
             this.forEachIndexed { index, item ->

@@ -8,15 +8,19 @@ package com.wongki.demo.model.bean
  */
 class SearchMusic {
 
+    class Params
 
-    data class Item(
-        val author: String,
-        val link: String,
-        val lrc: String,
-        val pic: String,
-        val songid: Int,
-        val title: String,
-        val type: String,
-        val url: String
-    )
+    class Response{
+        data class Item(
+            val author: String,
+            val link: String,
+            val lrc: String,
+            val pic: String,
+            val songid: Int,
+            val title: String,
+            val type: String,
+            val url: String
+        )
+    }
+
 }

@@ -1,6 +1,7 @@
 package com.wongki.framework.http.retrofit.core
 
 import com.wongki.framework.BuildConfig
+import com.wongki.framework.EventObserverBuilder
 import com.wongki.framework.http.HttpDsl
 import com.wongki.framework.http.base.IRequester
 import com.wongki.framework.http.config
@@ -66,7 +67,7 @@ abstract class RetrofitServiceCore<SERVICE> : AbsRetrofitServiceCore<SERVICE>(),
         private lateinit var api: SERVICE.() -> Observable<RESPONSE_DATA>
         // 默认使用默认的配置
         private var config: HttpConfig = this@RetrofitServiceCore.defaultConfig
-        private var observerBuilder: RetrofitRequesterObserverBuilder<RESPONSE_DATA>? = null
+        private var observerBuilder: EventObserverBuilder<RESPONSE_DATA>? = null
 
         /**
          * api请求
@@ -99,8 +100,8 @@ abstract class RetrofitServiceCore<SERVICE> : AbsRetrofitServiceCore<SERVICE>(),
          * 观察此次的api请求
          */
         @HttpDsl
-        fun observer(init: RetrofitRequesterObserverBuilder<RESPONSE_DATA>.() -> Unit): RequesterBuilder<RESPONSE_DATA> {
-            val requesterObserverBuilder = this@RetrofitServiceCore.RetrofitRequesterObserverBuilder<RESPONSE_DATA>()
+        fun observer(init: EventObserverBuilder<RESPONSE_DATA>.() -> Unit): RequesterBuilder<RESPONSE_DATA> {
+            val requesterObserverBuilder = EventObserverBuilder<RESPONSE_DATA>()
             requesterObserverBuilder.init()
             this.observerBuilder = requesterObserverBuilder
             return this
@@ -295,7 +296,7 @@ abstract class RetrofitServiceCore<SERVICE> : AbsRetrofitServiceCore<SERVICE>(),
 
         private fun getDisposable() = mDisposable?.get()
 
-        internal fun setRequesterObserver(requesterObserver: RetrofitRequesterObserverBuilder<RESPONSE_DATA>?) {
+        internal fun setRequesterObserver(requesterObserver: EventObserverBuilder<RESPONSE_DATA>?) {
             requesterObserver ?: return
             this.onStart = requesterObserver.onStart
             this.onCancel = requesterObserver.onCancel

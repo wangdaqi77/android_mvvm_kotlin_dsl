@@ -1,8 +1,7 @@
 package com.wongki.demo.vm
 
-import com.wongki.demo.model.remote.musicService
 import com.wongki.demo.model.bean.SearchMusic
-import com.wongki.framework.http.retrofit.core.thenCall
+import com.wongki.demo.model.repo.MusicRepo
 import com.wongki.framework.mvvm.lifecycle.LiveDataViewModel
 import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
 
@@ -14,16 +13,16 @@ import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
  */
 
 @LiveDataViewModelDslMarker
-class MusicViewModel : LiveDataViewModel() {
+class MusicViewModel : LiveDataViewModel<MusicRepo>() {
 
     fun searchMusic(name: String) {
-        // 请求服务器获取搜索结果
-        musicService {
+        // 一：通过仓库搜索音乐 (推荐)
+        repository {
 
-            api { searchMusic(name = name) }.thenCall {
+            searchMusic(name) {
 
                 /**
-                 * 网络请求的观察器转换成EventValue通知[MusicActivity.attachEventObserveForArrayList<SearchMusic.Item>]
+                 * 网络请求的观察器转换成EventValue通知[MusicActivity.attachEventObserveForArrayList<SearchMusic.Response.Item>]
                  * &&
                  * 在通知UI前观察数据（设置搜索结果总数和设置结果列表）
                  */
@@ -35,13 +34,37 @@ class MusicViewModel : LiveDataViewModel() {
                         this@MusicViewModel.setResultList(this)
                     }
                 }
+
             }
 
         }
+
+
+        // 二：直接通过远端服务搜索音乐
+//        musicService {
+//
+//            api { searchMusic(name = name) }.thenCall {
+//
+//                /**
+//                 * 网络请求的观察器转换成EventValue通知[MusicActivity.attachEventObserveForArrayList<SearchMusic.Response.Item>]
+//                 * &&
+//                 * 在通知UI前观察数据（设置搜索结果总数和设置结果列表）
+//                 */
+//                observeAndTransformEventObserverForArrayList {
+//                    onSuccess {
+//                        // 设置搜索结果总数
+//                        this@MusicViewModel.setTotalCount(this)
+//                        // 设置结果列表
+//                        this@MusicViewModel.setResultList(this)
+//                    }
+//                }
+//            }
+//
+//        }
     }
 
     // 设置结果总数
-    private fun setTotalCount(list: ArrayList<SearchMusic.Item>?) {
+    private fun setTotalCount(list: ArrayList<SearchMusic.Response.Item>?) {
 
         // 通知订阅的地方
         setValue<Int> {
@@ -57,7 +80,7 @@ class MusicViewModel : LiveDataViewModel() {
     }
 
     // 设置结果列表
-    private fun setResultList(list: ArrayList<SearchMusic.Item>?) {
+    private fun setResultList(list: ArrayList<SearchMusic.Response.Item>?) {
         var result = ""
         list?.apply {
             this.forEachIndexed { index, item ->

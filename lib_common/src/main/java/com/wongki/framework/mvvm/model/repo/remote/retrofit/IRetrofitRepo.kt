@@ -1,7 +1,6 @@
-package com.wongki.framework.mvvm.remote.retrofit
+package com.wongki.framework.mvvm.model.repo.remote.retrofit
 
 import com.wongki.framework.http.retrofit.lifecycle.IHttpDestroyedObserver
-import java.lang.RuntimeException
 
 /**
  * @author  wangqi

@@ -1,4 +1,4 @@
-package com.wongki.demo.model.local
+package com.wongki.demo.model.repo.local
 
 import com.wongki.framework.extensions.getApp
 import com.wongki.framework.kpref.*

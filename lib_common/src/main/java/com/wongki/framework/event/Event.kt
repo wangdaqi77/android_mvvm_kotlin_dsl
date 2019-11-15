@@ -1,4 +1,4 @@
-package com.wongki.framework.mvvm.event
+package com.wongki.framework.event
 
 /**
  * @author  wangqi

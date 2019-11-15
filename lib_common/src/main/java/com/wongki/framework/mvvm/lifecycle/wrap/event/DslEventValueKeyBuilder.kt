@@ -12,7 +12,8 @@ import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
 @LiveDataViewModelDslMarker
 open class DslEventValueKeyBuilder:ILiveDataKeyBuilder<EventValueKey> {
     protected lateinit var type : EventValueType
-    var keyBuilder: EventValueKeyBuilder = EventValueKeyBuilder()
+    var keyBuilder: EventValueKeyBuilder =
+        EventValueKeyBuilder()
 
     @LiveDataViewModelDslMarker
     fun key(init: EventValueKeyBuilder.() -> Unit) {

@@ -4,6 +4,7 @@ import android.os.Bundle
 import com.google.android.material.snackbar.Snackbar
 import com.wongki.demo.R
 import com.wongki.demo.model.bean.SearchMusic
+import com.wongki.demo.model.repo.MusicRepo
 import com.wongki.demo.vm.MusicViewModel
 import com.wongki.framework.base.BaseActivity
 import com.wongki.framework.extensions.dialogDismiss
@@ -24,7 +25,7 @@ class MusicActivity : BaseActivity() {
 
 
     private fun initViewModel() {
-        // 1.attach的目的是在对应的ViewModel生成对应的LiveData对象
+        // 1.attachObserve的目的是在对应的ViewModel生成对应的LiveData对象和订阅观察数据变动
         // 2.LiveData会缓存在ViewModel中(有唯一的Key绑定，Key的生成与kClass或method相关)
         // 3.observe的目的是订阅，观察数据变动
         viewModel<MusicViewModel> {
@@ -62,11 +63,13 @@ class MusicActivity : BaseActivity() {
             }
 
 
+
             // 搜索音乐结果
-            attachEventObserveForArrayList<SearchMusic.Item> {
+            attachEventObserveForArrayList<SearchMusic.Response.Item> {
 
                 // 订阅，观察网络请求状态和结果
                 observe {
+
                     owner = this@MusicActivity
                     onStart {
                         /*开始*/

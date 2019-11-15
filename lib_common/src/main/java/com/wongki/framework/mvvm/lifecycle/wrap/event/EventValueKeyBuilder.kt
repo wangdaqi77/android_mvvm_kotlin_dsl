@@ -11,17 +11,19 @@ import kotlin.reflect.KClass
  * desc:    .
  */
 @LiveDataViewModelDslMarker
-open class EventValueKeyBuilder : ILiveDataKeyBuilder<EventValueKey> {
+open class EventValueKeyBuilder :
+    ILiveDataKeyBuilder<EventValueKey> {
     companion object {
         internal val DEFAULT = EventValueKeyBuilder::class
     }
 
     internal lateinit var type: EventValueType
-    var kClass: KClass<*> = DEFAULT
+    var kClass: KClass<*> =
+        DEFAULT
 
     fun check(): Boolean = kClass != DEFAULT
 
-    override fun buildKey(keyPrefix:String) = EventValueKey().apply {
+    override fun buildKey(keyPrefix: String) = EventValueKey().apply {
         key =
             "$keyPrefix:${this@EventValueKeyBuilder.type.name}<${this@EventValueKeyBuilder.kClass.qualifiedName}>"
     }

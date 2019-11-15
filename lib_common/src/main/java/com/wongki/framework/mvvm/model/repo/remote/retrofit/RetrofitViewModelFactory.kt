@@ -1,4 +1,4 @@
-package com.wongki.framework.mvvm.remote.retrofit
+package com.wongki.framework.mvvm.model.repo.remote.retrofit
 
 import com.wongki.framework.extensions.WeakDelegate
 import com.wongki.framework.http.retrofit.lifecycle.IHttpDestroyedObserver

@@ -4,7 +4,7 @@ import android.util.Log
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
-import com.wongki.framework.mvvm.event.Event
+import com.wongki.framework.event.Event
 import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
 import java.lang.RuntimeException
 

@@ -1,6 +1,6 @@
 package com.wongki.framework.mvvm.lifecycle.wrap.event
 
-import com.wongki.framework.mvvm.event.Event
+import com.wongki.framework.event.Event
 import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
 
 /**

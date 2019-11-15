@@ -1,5 +1,6 @@
 package com.wongki.framework.mvvm.lifecycle.wrap.event
 
+import com.wongki.framework.EventObserverBuilder
 import com.wongki.framework.http.retrofit.observer.HttpCommonObserver
 import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
 
@@ -11,19 +12,15 @@ import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
  */
 
 @LiveDataViewModelDslMarker
-open class EventValueObserverBuilder<T> {
-    var onStart: (() -> Unit)? = null
-    var onCancel: (() -> Unit)? = null
-    var onFailed: ((Int, String) -> Boolean)? = null
-    var onSuccess: (T?.() -> Unit)? = null
+open class EventValueObserverBuilder<T> : EventObserverBuilder<T>(){
 
     @LiveDataViewModelDslMarker
-    fun onStart(onStart: () -> Unit) {
+    override fun onStart(onStart: () -> Unit) {
         this.onStart = onStart
     }
 
     @LiveDataViewModelDslMarker
-    fun onCancel(onCancel: () -> Unit) {
+    override fun onCancel(onCancel: () -> Unit) {
         this.onCancel = onCancel
     }
 
@@ -32,12 +29,12 @@ open class EventValueObserverBuilder<T> {
      *  目前框架层会弹Toast[HttpCommonObserver.onError]
      */
     @LiveDataViewModelDslMarker
-    fun onFailed(onFailed: ((Int, String) -> Boolean)) {
+    override fun onFailed(onFailed: ((Int, String) -> Boolean)) {
         this.onFailed = onFailed
     }
 
     @LiveDataViewModelDslMarker
-    fun onSuccess(onSuccess: T?.() -> Unit) {
+    override fun onSuccess(onSuccess: T?.() -> Unit) {
         this.onSuccess = onSuccess
     }
 

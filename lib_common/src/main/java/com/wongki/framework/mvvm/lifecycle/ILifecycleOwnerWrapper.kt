@@ -9,5 +9,6 @@ import androidx.lifecycle.LifecycleOwner
  * desc:    .
  */
 interface ILifecycleOwnerWrapper {
+    fun setLifecycleOwner(lifecycleOwner: LifecycleOwner)
     fun getLifecycleOwner():LifecycleOwner?
 }

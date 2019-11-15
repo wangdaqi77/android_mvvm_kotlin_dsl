@@ -6,13 +6,15 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelStore
+import com.wongki.framework.EventObserverBuilder
 import com.wongki.framework.model.domain.MyResponse
 import com.wongki.framework.http.retrofit.core.RetrofitServiceCore
-import com.wongki.framework.mvvm.event.Event
+import com.wongki.framework.http.retrofit.lifecycle.IHttpDestroyedObserver
+import com.wongki.framework.event.Event
 import com.wongki.framework.mvvm.lifecycle.exception.DslRejectedException
 import com.wongki.framework.mvvm.lifecycle.wrap.IEventLiveDataViewModel
 import com.wongki.framework.mvvm.lifecycle.wrap.event.*
-import com.wongki.framework.mvvm.remote.retrofit.IRetrofitRepo
+import com.wongki.framework.mvvm.model.repo.IRepository
 import java.lang.ref.WeakReference
 
 /**
@@ -53,7 +55,7 @@ import java.lang.ref.WeakReference
  *
  * API说明
  *
- * 一、装载订阅
+ * 一、装载LiveData并订阅
  * 1.[LiveDataViewModel.attachObserve]常规无状态，使用参考上面的例子
  * 2.[LiveDataViewModel.attachEventObserve]异步场景有状态[EventValue.event]
  * 3.[LiveDataViewModel.attachEventObserveForArrayList]异步场景有状态
@@ -71,10 +73,11 @@ import java.lang.ref.WeakReference
  * 3.[LiveDataViewModel.getEventValueForArrayList]异步场景ArrayList有状态
  *
  *  注意：
- *  装载订阅时生命周期的提供者默认值为创建ViewModel时的LifecycleOwner对象，
- *  详情请查看[FragmentActivity.viewModel]和[Fragment.viewModel]的拓展函数,
+ *  1.有状态的不支持设置key（也就是说有状态的同一个类型只能存在一个LiveData）！
+ *  2.装载订阅时LiveData的LifecycleOwner默认为创建ViewModel时的LifecycleOwner对象，
+ *  详情请查看[FragmentActivity.viewModel]和[Fragment.viewModel]拓展函数[setLifecycleOwner],
  *  以及[ILiveDataViewModel.attachObserve]等装载订阅函数，如果你需要为LiveData
- *  提供其他的LifecycleOwner，那么需要在装载订阅时覆盖掉默认值
+ *  提供其他的LifecycleOwner，那么需要在装载订阅时设置owner
  *      attachObserve {
  *          key {...}
  *          observe {
@@ -84,12 +87,24 @@ import java.lang.ref.WeakReference
  *
  */
 @LiveDataViewModelDslMarker
-open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataViewModel,
-    IRetrofitRepo, ILifecycleOwnerWrapper {
+open class LiveDataViewModel<REPO : IRepository> : ViewModel(), ILiveDataViewModel,
+    IEventLiveDataViewModel,
+    IHttpDestroyedObserver, ILifecycleOwnerWrapper {
     val TAG = javaClass.simpleName
     override val mLiveDatas: HashMap<LiveDataKey, MutableLiveData<*>?> = HashMap()
     override val mEventLiveDatas: HashMap<LiveDataKey, EventLiveData<*>?> = HashMap()
     internal lateinit var lifecycleOwnerRef: WeakReference<LifecycleOwner?>
+    internal lateinit var repo: REPO
+
+    internal fun createRepo(clazz: Class<*>) {
+        @Suppress("UNCHECKED_CAST")
+        repo = clazz.newInstance() as REPO
+    }
+
+    @LiveDataViewModelDslMarker
+    protected fun repository(init: REPO.() -> Unit) {
+        repo.init()
+    }
 
     @LiveDataViewModelDslMarker
     @Suppress("UNCHECKED_CAST")
@@ -316,10 +331,11 @@ open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataVi
     inline fun <API, reified ITEM : Any> RetrofitServiceCore<API>.RequesterBuilder<MyResponse<ArrayList<ITEM>>>.observeAndTransformEventObserverForArrayList(
         crossinline init: EventValueObserverBuilder<ArrayList<ITEM>>.() -> Unit = {}
     ) {
-        lifecycleObserver = this@LiveDataViewModel
         val builder = EventValueObserverBuilder<ArrayList<ITEM>>()
         builder.init()
         val kClass = ITEM::class
+
+        lifecycleObserver = this@LiveDataViewModel
         observer {
 
             onStart {
@@ -391,8 +407,173 @@ open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataVi
     }
 
 
-    fun setLifecycleOwner(lifecycleOwner: LifecycleOwner) {
+    /**
+     * 网络请求的观察器转换成EventValue[setEventValue]通知[attachEventObserve]
+     * &&
+     * 在通知UI前观察数据
+     */
+    @LiveDataViewModelDslMarker
+    @Suppress("UNCHECKED_CAST")
+    inline fun <reified RESPONSE_DATA : Any> EventObserverBuilder<MyResponse<RESPONSE_DATA>>.observeAndTransformEventObserver(
+        crossinline init: EventValueObserverBuilder<RESPONSE_DATA>.() -> Unit = {}
+    ) {
+        val builder = EventValueObserverBuilder<RESPONSE_DATA>()
+        builder.init()
+        val kClass = RESPONSE_DATA::class
+
+        onStart {
+            builder.onStart?.invoke()
+            // 通知开始
+            setEventValue<RESPONSE_DATA> {
+                key {
+                    this.kClass = kClass
+                }
+                value {
+                    event = Event.START
+                }
+            }
+        }
+
+        onCancel {
+            builder.onCancel?.invoke()
+            // 通知取消
+            setEventValue<RESPONSE_DATA> {
+                key {
+                    this.kClass = kClass
+                }
+                value {
+                    event = Event.CANCEL
+                }
+            }
+        }
+
+        onSuccess {
+            val data = this?.data
+
+            builder.onSuccess?.invoke(data)
+            // 通知成功
+            setEventValue<RESPONSE_DATA> {
+                key {
+                    this.kClass = kClass
+                }
+                value {
+                    event = Event.SUCCESS
+                    this.data = this@onSuccess?.data
+                }
+            }
+
+        }
+
+        onFailed { code, message ->
+            builder.onFailed?.invoke(code, message)
+            // 通知失败
+            setEventValue<RESPONSE_DATA> {
+                key {
+                    this.kClass = kClass
+                }
+                value {
+                    event = Event.FAILED
+                    this.code = code
+                    this.message = message
+                }
+            }
+
+            return@onFailed getEventValue<RESPONSE_DATA> {
+                key {
+                    this.kClass = kClass
+                }
+            }?.errorProcessed ?: false
+        }
+
+    }
+
+
+    /**
+     * 网络请求的观察器转换成EventValue[setEventValueForArrayList]通知[attachEventObserveForArrayList]
+     * &&
+     * 在通知UI前观察数据
+     */
+    @LiveDataViewModelDslMarker
+    @Suppress("UNCHECKED_CAST")
+    inline fun <reified ITEM : Any> EventObserverBuilder<MyResponse<ArrayList<ITEM>>>.observeAndTransformEventObserverForArrayList(
+        crossinline init: EventValueObserverBuilder<ArrayList<ITEM>>.() -> Unit = {}
+    ) {
+        val builder = EventValueObserverBuilder<ArrayList<ITEM>>()
+        builder.init()
+        val kClass = ITEM::class
+
+        onStart {
+            builder.onStart?.invoke()
+            // 通知开始
+            setEventValueForArrayList<ITEM> {
+                key {
+                    this.kClass = kClass
+                }
+
+                value {
+                    event = Event.START
+                }
+            }
+        }
+
+        onCancel {
+            builder.onCancel?.invoke()
+            // 通知取消
+            setEventValueForArrayList<ITEM> {
+                key {
+                    this.kClass = kClass
+                }
+                value {
+                    event = Event.CANCEL
+                }
+            }
+        }
+
+        onSuccess {
+            val result = this?.data
+            builder.onSuccess?.invoke(result)
+            // 通知成功
+            setEventValueForArrayList<ITEM> {
+                key {
+                    this.kClass = kClass
+                }
+                value {
+                    event = Event.SUCCESS
+                    data = result
+                }
+            }
+
+        }
+
+        onFailed { code, message ->
+
+            builder.onFailed?.invoke(code, message)
+            // 通知失败
+            setEventValueForArrayList<ITEM> {
+                key {
+                    this.kClass = kClass
+                }
+                value {
+                    event = Event.FAILED
+                    this.code = code
+                    this.message = message
+                }
+            }
+
+            return@onFailed getEventValueForArrayList<ITEM> {
+                key {
+                    this.kClass = kClass
+                }
+            }?.errorProcessed ?: false
+        }
+
+
+    }
+
+
+    override fun setLifecycleOwner(lifecycleOwner: LifecycleOwner) {
         this.lifecycleOwnerRef = WeakReference(lifecycleOwner)
+        repo.setLifecycleOwner(lifecycleOwner)
 
     }
 
@@ -403,6 +584,9 @@ open class LiveDataViewModel : ViewModel(), ILiveDataViewModel, IEventLiveDataVi
      */
     override fun onCleared() {
         super.onCleared()
-        onDestroy()
+        clearRequestes()
+        repository {
+            clearRequestes()
+        }
     }
 }
