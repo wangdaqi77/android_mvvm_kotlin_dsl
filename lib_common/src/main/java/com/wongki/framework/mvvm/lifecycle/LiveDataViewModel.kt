@@ -77,7 +77,7 @@ import java.lang.ref.WeakReference
  *  2.装载订阅时LiveData的LifecycleOwner默认为创建ViewModel时的LifecycleOwner对象，
  *  详情请查看[FragmentActivity.viewModel]和[Fragment.viewModel]拓展函数[setLifecycleOwner],
  *  以及[ILiveDataViewModel.attachObserve]等装载订阅函数，如果你需要为LiveData
- *  提供其他的LifecycleOwner，那么需要在装载订阅时设置owner
+ *  提供其他的LifecycleOwner，那么需要在装载订阅时指定owner
  *      attachObserve {
  *          key {...}
  *          observe {

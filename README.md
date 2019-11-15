@@ -50,7 +50,7 @@ fun setUserName(name:String) {
 
 ### 注意
 #### 1.有状态的不支持设置key（也就是说有状态的同一个类型只能存在一个LiveData）！
-#### 2.装载订阅时LiveData的LifecycleOwner默认为创建ViewModel时的LifecycleOwner对象，详情请查看[FragmentActivity.viewModel]和[Fragment.viewModel]拓展函数[setLifecycleOwner],以及[ILiveDataViewModel.attachObserve]等装载订阅函数，如果你需要为LiveData提供其他的LifecycleOwner，那么需要在装载订阅时设置owner
+#### 2.装载订阅时LiveData的LifecycleOwner默认为创建ViewModel时的LifecycleOwner对象，详情请查看[FragmentActivity.viewModel]和[Fragment.viewModel]拓展函数[setLifecycleOwner],以及[ILiveDataViewModel.attachObserve]等装载订阅函数，如果你需要为LiveData提供其他的LifecycleOwner，那么需要在装载订阅时指定owner
 ```
 viewModel<XXViewModel> {
     attachObserve {
@@ -66,11 +66,11 @@ viewModel<XXViewModel> {
 ### 搜索音乐
 ![demo.png](./assets/demo.png)
 
-#### 1.生成LiveData并订阅
+#### 1.装载并订阅
 ```kotlin
-// 1.attach的目的是在对应的ViewModel生成对应的LiveData对象
-// 2.LiveData会缓存在ViewModel中(有唯一的Key绑定，Key的生成与kClass、method相关)
-// 3.observe的目的是订阅
+// 1.attachObserve的目的是在对应的ViewModel生成对应的LiveData对象和订阅观察数据变动
+// 2.LiveData会缓存在ViewModel中(有唯一的Key绑定，Key的生成与kClass或method相关)
+// 3.observe的目的是订阅，观察数据变动
 viewModel<MusicViewModel> {
 
     // 结果总数量
