@@ -10,5 +10,5 @@ interface IHttpLifecycleObserver{
     /**
      * 应该做一些取消网络请求的操作
      */
-    fun clearRequestes()
+    fun clearRequest()
 }

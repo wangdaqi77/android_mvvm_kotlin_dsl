@@ -9,7 +9,7 @@ import com.wongki.framework.http.lifecycle.IHttpLifecycleObserver
  * desc:
  */
 interface IHttpDestroyedObserver : IHttpLifecycleObserver {
-    override fun clearRequestes() {
+    override fun clearRequest() {
         HttpRequesterManagerHelper.forEachLifecycle { lifecycle ->
             lifecycle.cancelRequest(this@IHttpDestroyedObserver)
         }

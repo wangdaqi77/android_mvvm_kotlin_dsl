@@ -583,9 +583,9 @@ open class LiveDataViewModel<REPO : IRepository> : ViewModel(), ILiveDataViewMod
      */
     override fun onCleared() {
         super.onCleared()
-        clearRequestes()
+        clearRequest()
         repository {
-            clearRequestes()
+            clearRequest()
         }
     }
 }
