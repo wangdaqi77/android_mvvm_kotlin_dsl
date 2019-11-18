@@ -3,9 +3,7 @@ package com.wongki.demo.model.repo
 import com.wongki.demo.model.bean.SearchMusic
 import com.wongki.demo.model.repo.remote.BaseRepository
 import com.wongki.demo.model.repo.remote.musicService
-import com.wongki.demo.model.repo.remote.service.MusicApi
 import com.wongki.framework.EventObserverBuilder
-import com.wongki.framework.http.retrofit.core.RetrofitServiceCore
 import com.wongki.framework.http.retrofit.core.thenCall
 import com.wongki.framework.model.domain.MyResponse
 

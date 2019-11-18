@@ -4,7 +4,7 @@ import android.os.Bundle
 import com.google.android.material.snackbar.Snackbar
 import com.wongki.demo.R
 import com.wongki.demo.model.bean.SearchMusic
-import com.wongki.demo.model.repo.MusicRepo
+import com.wongki.demo.model.repo.local.user
 import com.wongki.demo.vm.MusicViewModel
 import com.wongki.framework.base.BaseActivity
 import com.wongki.framework.extensions.dialogDismiss
@@ -66,7 +66,6 @@ class MusicActivity : BaseActivity() {
 
             // 搜索音乐结果
             attachEventObserveForArrayList<SearchMusic.Response.Item> {
-
                 // 订阅，观察网络请求状态和结果
                 observe {
 

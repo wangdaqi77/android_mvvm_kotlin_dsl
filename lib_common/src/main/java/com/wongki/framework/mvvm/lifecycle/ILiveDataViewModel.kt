@@ -97,11 +97,9 @@ interface ILiveDataViewModel : ILifecycleOwnerWrapper,IViewModel {
 
     @LiveDataViewModelDslMarker
     class ObserveBuilder<T : Any> {
-        @LiveDataViewModelDslMarker
         var owner: LifecycleOwner? = null
         internal var onChange: (T?.() -> Unit)? = null
 
-        @LiveDataViewModelDslMarker
         fun onChange(onChange: T?.() -> Unit) {
             this.onChange = onChange
         }

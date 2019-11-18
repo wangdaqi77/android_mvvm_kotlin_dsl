@@ -101,7 +101,6 @@ open class LiveDataViewModel<REPO : IRepository> : ViewModel(), ILiveDataViewMod
         repo = clazz.newInstance() as REPO
     }
 
-    @LiveDataViewModelDslMarker
     protected fun repository(init: REPO.() -> Unit) {
         repo.init()
     }

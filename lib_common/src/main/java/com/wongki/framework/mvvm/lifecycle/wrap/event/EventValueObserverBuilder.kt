@@ -14,12 +14,10 @@ import com.wongki.framework.mvvm.lifecycle.LiveDataViewModelDslMarker
 @LiveDataViewModelDslMarker
 open class EventValueObserverBuilder<T> : EventObserverBuilder<T>(){
 
-    @LiveDataViewModelDslMarker
     override fun onStart(onStart: () -> Unit) {
         this.onStart = onStart
     }
 
-    @LiveDataViewModelDslMarker
     override fun onCancel(onCancel: () -> Unit) {
         this.onCancel = onCancel
     }
@@ -28,12 +26,10 @@ open class EventValueObserverBuilder<T> : EventObserverBuilder<T>(){
      *  返回true代表上层处理，返回false代表框架处理
      *  目前框架层会弹Toast[HttpCommonObserver.onError]
      */
-    @LiveDataViewModelDslMarker
     override fun onFailed(onFailed: ((Int, String) -> Boolean)) {
         this.onFailed = onFailed
     }
 
-    @LiveDataViewModelDslMarker
     override fun onSuccess(onSuccess: T?.() -> Unit) {
         this.onSuccess = onSuccess
     }

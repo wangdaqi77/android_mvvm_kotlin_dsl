@@ -22,9 +22,9 @@ class UserPref(builder: KPrefBuilder) : KPref(builder) {
     }
 
 
-    var userName by kpref("userName", "")
+    var userName by kpref("user_name", "")
 
-    var isLogin by kpref("isLogin", false)
+    var isLogin by kpref("is_login", false)
 
 }
 
@@ -36,6 +36,7 @@ object User {
     /**
      * 保存用户数据
      */
+    @UserDslMarker
     fun push(action: UserPref.() -> Unit) {
         androidUserPref.action()
         memUserPref.action()
@@ -44,6 +45,7 @@ object User {
     /**
      * 获取用户数据
      */
+    @UserDslMarker
     fun <T> pull(action: UserPref.() -> T): T {
         return memUserPref.action()
     }

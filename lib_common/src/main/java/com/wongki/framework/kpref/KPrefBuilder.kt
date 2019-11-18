@@ -75,7 +75,7 @@ enum class KPrefType {
 object KPrefBuilderAndroid : KPrefBuilder {
 
     override fun KPref.kpref(key: String, fallback: Boolean, postSetter: (value: Boolean) -> Unit) =
-        KPrefDelegateAndroid(key, fallback, this, KPrefBooleanTransaction, postSetter)
+    KPrefDelegateAndroid(key, fallback, this, KPrefBooleanTransaction, postSetter)
 
     override fun KPref.kpref(key: String, fallback: Float, postSetter: (value: Float) -> Unit) =
         KPrefDelegateAndroid(key, fallback, this, KPrefFloatTransaction, postSetter)

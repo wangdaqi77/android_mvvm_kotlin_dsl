@@ -13,7 +13,6 @@ open class LiveDataKeyBuilder : ILiveDataKeyBuilder<LiveDataKey> {
         internal const val DEFAULT = ""
     }
 
-    @LiveDataViewModelDslMarker
     var method: String = DEFAULT
 
     fun check():Boolean = method != DEFAULT
