@@ -1,8 +1,9 @@
 # android_mvvm_kotlin_dsl
-## 淡化了LiveData、Lifecycle的存在，dsl style便于阅读
+淡化了LiveData、Lifecycle的存在，便于阅读
 
-### 简单2步完成订阅和更新数据
-#### View - 装载订阅
+## 使用说明
+两步完成订阅和更新数据
+### View - 装载订阅
 ```kotlin
 viewModel<XXViewModel> {
     attachObserve<String> {
@@ -19,7 +20,8 @@ viewModel<XXViewModel> {
     }
 }
 ```
-#### ViewModel - 设置、更新数据（下一版使用kapt技术自动生成更新数据的方法，委托调用使用可以减少开发代码）
+### ViewModel - 设置、更新数据
+未来版本使用kapt等技术可以自动生成更新数据的方法，可以减少开发代码
 ```kotlin
 fun setUserName(name:String) {
     setValue<String> {
@@ -33,44 +35,32 @@ fun setUserName(name:String) {
 ```
 
 ## API说明
-### 一、装载订阅
-#### 1.[LiveDataViewModel.attachObserve]常规无状态，使用参考上面的例子
-#### 2.[LiveDataViewModel.attachEventObserve]异步场景有状态[EventValue.event]
-#### 3.[LiveDataViewModel.attachEventObserveForArrayList]异步场景有状态
+### 装载订阅
+ * [LiveDataViewModel.attachObserve]同步场景无状态，使用参考上面的例子
+ * [LiveDataViewModel.attachEventObserve]异步场景有状态[EventValue.event]
+ * [LiveDataViewModel.attachEventObserveForArrayList]异步场景有状态
 
-### 二、设置值
-#### 1.[LiveDataViewModel.setValue]常规无状态，使用参考上面的例子
-#### 2.[LiveDataViewModel.setEventValue]异步场景有状态，具体使用可参考[LiveDataViewModel.observeAndTransformEventObserver]
-#### 3.[LiveDataViewModel.setEventValueForArrayList]异步场景ArrayList有状态，具体使用可参考[LiveDataViewModel.observeAndTransformEventObserverForArrayList]
+### 设置值
+ * [LiveDataViewModel.setValue]同步场景无状态，使用参考上面的例子
+ * [LiveDataViewModel.setEventValue]异步场景有状态，具体使用可参考[LiveDataViewModel.observeAndTransformEventObserver]
+ * [LiveDataViewModel.setEventValueForArrayList]异步场景ArrayList有状态，具体使用可参考[LiveDataViewModel.observeAndTransformEventObserverForArrayList]
 
-### 三、获取值(参考设置值)
-#### 1.[LiveDataViewModel.getValue]常规无状态
-#### 2.[LiveDataViewModel.getEventValue]异步场景有状态
-#### 3.[LiveDataViewModel.getEventValueForArrayList]异步场景ArrayList有状态
+### 获取值(参考设置值)
+ * [LiveDataViewModel.getValue]同步场景无状态
+ * [LiveDataViewModel.getEventValue]异步场景有状态
+ * [LiveDataViewModel.getEventValueForArrayList]异步场景ArrayList有状态
 
-### 注意
-#### 1.有状态的不支持设置key（也就是说有状态的同一个类型只能存在一个LiveData）！
-#### 2.装载订阅时LiveData的LifecycleOwner默认为创建ViewModel时的LifecycleOwner对象，详情请查看[FragmentActivity.viewModel]和[Fragment.viewModel]拓展函数[setLifecycleOwner],以及[ILiveDataViewModel.attachObserve]等装载订阅函数，如果你需要为LiveData提供其他的LifecycleOwner，那么需要在装载订阅时指定owner
-```
-viewModel<XXViewModel> {
-    attachObserve {
-        key {...}
-        observe {
-            owner = LifecycleOwner
-        }
-    }
-}
-```
+
 
 ## 例子
 ### 搜索音乐
 ![demo.png](./assets/demo.png)
 
 #### 1.装载并订阅
+ * attachObserve的目的是在对应的ViewModel生成对应的LiveData对象和订阅观察数据变动
+ * LiveData会缓存在ViewModel中(有唯一的Key绑定。同步场景无状态LiveData的Key生成与method有关，异步场景有状态LiveData的key生成无需关注，其默认与type、kClass相关)
+ * observe的目的是订阅，观察数据变动
 ```kotlin
-// 1.attachObserve的目的是在对应的ViewModel生成对应的LiveData对象和订阅观察数据变动
-// 2.LiveData会缓存在ViewModel中(有唯一的Key绑定，Key的生成与kClass或method相关)
-// 3.observe的目的是订阅，观察数据变动
 viewModel<MusicViewModel> {
 
     // 结果总数量
@@ -238,6 +228,20 @@ class MusicViewModel : LiveDataViewModel<MusicRepo>() {
             value { result }
         }
 
+    }
+}
+```
+## 其他
+### 注意
+ * 有状态的不支持设置key（也就是说有状态的一个类型在同一个ViewModel只能存在一个LiveData实例）！
+ * 装载订阅时LiveData的LifecycleOwner默认为创建ViewModel时的LifecycleOwner对象，详情请查看[FragmentActivity和Fragment的viewModel拓展函数](/lib_common/src/main/java/com/wongki/framework/mvvm/lifecycle/ViewModels.kt)中[LiveDataViewModelFactory工厂类](/lib_common/src/main/java/com/wongki/framework/mvvm/factory/LiveDataViewModelFactory.kt)生成ViewModel的过程，以及[ILiveDataViewModel.attachObserve](/lib_common/src/main/java/com/wongki/framework/mvvm/lifecycle/ILiveDataViewModel.kt)等装载订阅函数，如果你需要为LiveData提供其他的LifecycleOwner，那么需要在装载订阅时指定owner：
+```
+viewModel<XXViewModel> {
+    attachObserve {
+        key {...}
+        observe {
+            owner = LifecycleOwner
+        }
     }
 }
 ```
