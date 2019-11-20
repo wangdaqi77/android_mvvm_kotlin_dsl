@@ -116,54 +116,12 @@ abstract class RetrofitServiceCore<SERVICE> : AbsRetrofitServiceCore<SERVICE>(),
         }
     }
 
-    @HttpDsl
-    inner class RetrofitRequesterObserverBuilder<RESPONSE_DATA> {
-        internal var onStart: (() -> Unit)? = null
-        internal var onFailed: ((Int, String) -> Boolean)? = null
-        internal var onCancel: (() -> Unit)? = null
-        internal var onSuccess: (RESPONSE_DATA.() -> Unit)? = null
-
-        /**
-         * 当开始发起请求
-         */
-        @HttpDsl
-        fun onStart(onStart: () -> Unit) {
-            this.onStart = onStart
-        }
-
-        /**
-         * 当取消请求时
-         */
-        @HttpDsl
-        fun onCancel(onCancel: () -> Unit) {
-            this.onCancel = onCancel
-        }
-
-        /**
-         * 当成功时
-         */
-        @HttpDsl
-        fun onSuccess(onSuccess: RESPONSE_DATA?.() -> Unit) {
-            this.onSuccess = onSuccess
-        }
-
-        /**
-         * 当失败时
-         */
-        @HttpDsl
-        fun onFailed(onFailed: (Int, String) -> Boolean) {
-            this.onFailed = onFailed
-        }
-
-
-    }
-
     /**
      * 每次请求都会构建一个retrofit请求器
      */
     @HttpDsl
     inner class RetrofitRequester<RESPONSE_DATA> : IRetrofitRequester<SERVICE, RESPONSE_DATA>() {
-        private var core = this@RetrofitServiceCore
+        private var core   = this@RetrofitServiceCore
         private var lifecycleObserver: WeakReference<IHttpDestroyedObserver?>? = null
         private lateinit var callApi: SERVICE.() -> Observable<RESPONSE_DATA>
         private lateinit var config: HttpConfig

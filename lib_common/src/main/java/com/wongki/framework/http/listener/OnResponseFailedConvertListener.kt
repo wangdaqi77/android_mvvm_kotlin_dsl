@@ -1,5 +1,6 @@
 package com.wongki.framework.http.listener
 
+import com.wongki.framework.EventObserverBuilder
 import com.wongki.framework.http.HttpErrorCode
 import com.wongki.framework.http.config.HttpConfigBuilder
 import com.wongki.framework.http.exception.ApiException
@@ -26,7 +27,7 @@ interface OnResponseFailedConvertListener {
      *      2.当你能理解这个错误时返回null，当返回null时，你会在观察错误的函数体中接收到code:[HttpErrorCode.PARSE_FAILED]
      *
      * 注：观察错误的函数体
-     * 1.[RetrofitServiceCore.RetrofitRequesterObserverBuilder.onFailed]
+     * 1.[EventObserverBuilder.onFailed]
      * service{
      *      api{...}.thenCall{
      *          observe{

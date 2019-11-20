@@ -17,7 +17,7 @@ import retrofit2.http.Query
  */
 
 object MusicServiceCore : RetrofitServiceCore<MusicApi>() {
-    override fun generateDefaultConfig() = config {
+    override fun generateConfig() = config {
         host = "https://api.apiopen.top"
     }
 }

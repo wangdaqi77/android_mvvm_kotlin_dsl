@@ -22,7 +22,7 @@ internal var gConfigFunction: (HttpGlobalConfigBuilder.() -> Unit)? = null
  * 全局的配置
  *
  * 在Application进行构建
- *      httpGlobalConfig {
+ *      httpGlobal {
  *          ...
  *      }
  */
@@ -53,10 +53,9 @@ val CONTENTTYPE_JSON = MediaType.parse("application/json; charset=UTF-8").toStri
  * 全局配置
  */
 @HttpDsl
-fun httpGlobalConfig(init: HttpGlobalConfigBuilder.() -> Unit) {
-    if (gConfigFunction != null) throw IllegalArgumentException("只能配置一次 httpGlobalConfig {}")
-    gConfigFunction = init
-    notifyHttpConfigChange()
+fun httpGlobal(init: HttpGlobalBuilder.() -> Unit) {
+    val builderCreator = HttpGlobalBuilder()
+    builderCreator.init()
 }
 
 /**
@@ -95,18 +94,19 @@ internal fun AbsRetrofitServiceCore<*>.cacheSelf() {
 }
 
 private fun IHttpConfig.checkGlobalConfig() {
-    check(successfulCode,"successfulCode")
-    check(responseClass,"responseClass")
-    check(onResponseConvertFailedListener,"onResponseConvertFailedListener")
+    check(successfulCode, "successfulCode")
+    check(responseClass, "responseClass")
+    check(onResponseConvertFailedListener, "onResponseConvertFailedListener")
 }
 
 private fun <T> IHttpConfig.check(t: T?, filedName: String): T {
-    return t ?: throw IllegalArgumentException(filedName.getGlobalConfigErrorMessage()
+    return t ?: throw IllegalArgumentException(
+        filedName.getGlobalConfigErrorMessage()
     )
 }
 
 internal fun String.getGlobalConfigErrorMessage(): String {
-  return  "未配置$this，请配置 httpGlobalConfig {$this ...}"
+    return "未配置$this，请配置 httpGlobal {$this ...}"
 }
 
 /**
@@ -117,4 +117,25 @@ private fun createGlobalConfig() {
     gConfigFunction?.invoke(builder)
     gConfig = builder.build()
     gConfig!!.checkGlobalConfig()
+}
+
+@HttpDsl
+class HttpGlobalBuilder {
+    private companion object {
+        var initialized = false
+    }
+
+    init {
+        if (initialized) {
+            throw IllegalArgumentException("已经初始化过，禁止再次 httpGlobal{}")
+        }
+        initialized = true
+    }
+
+    @HttpDsl
+    fun newConfig(init: HttpGlobalConfigBuilder.() -> Unit) {
+        if (gConfigFunction != null) throw IllegalArgumentException("只能全局配置一次")
+        gConfigFunction = init
+        notifyHttpConfigChange()
+    }
 }

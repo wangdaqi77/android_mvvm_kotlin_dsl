@@ -15,7 +15,7 @@ class HttpLifecycleManager {
     /**
      * 根据tag查找requester
      */
-    private inline fun find(httpLifecycleObserver: IHttpLifecycleObserver, onFind: (MutableMap.MutableEntry<IHttpLifecycleObserver, java.util.ArrayList<IRequester>>) -> Unit) {
+    private inline fun find(httpLifecycleObserver: IHttpLifecycleObserver, onFind: (MutableMap.MutableEntry<IHttpLifecycleObserver, ArrayList<IRequester>>) -> Unit) {
         val iterator = mCaches.iterator()
         while (iterator.hasNext()) {
             val next = iterator.next()

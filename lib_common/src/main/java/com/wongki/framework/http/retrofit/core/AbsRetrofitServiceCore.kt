@@ -33,7 +33,7 @@ import java.lang.reflect.ParameterizedType
  */
 abstract class AbsRetrofitServiceCore<SERVICE> : IRetrofit<SERVICE>, IHttpRequesterManagerOwner {
     init {
-        requireNotNull(gConfig) { "未配置http全局配置，推荐在你的Application.onCreate()进行初始化\"httpGlobalConfig{ ... }\"" }
+        requireNotNull(gConfig) { "未配置http全局配置，推荐在你的Application.onCreate()进行初始化\"httpGlobal{ ... }\"" }
         updateConfigAndRetrofit()
         cacheSelf()
     }
@@ -51,14 +51,14 @@ abstract class AbsRetrofitServiceCore<SERVICE> : IRetrofit<SERVICE>, IHttpReques
     }
 
     private fun updateConfigAndRetrofit() {
-        defaultConfig = this.generateDefaultConfig()
+        defaultConfig = this.generateConfig()
         defaultRetrofit = this.generateDefaultRetrofit()
     }
 
     /**
      * 生成默认的配置
      */
-    abstract fun generateDefaultConfig(): HttpConfig
+    abstract fun generateConfig(): HttpConfig
 
     /**
      * 生成默认的retrofit

@@ -1,5 +1,6 @@
 package com.wongki.framework.http.config
 
+import com.wongki.framework.EventObserverBuilder
 import com.wongki.framework.http.HttpDsl
 import com.wongki.framework.http.exception.ApiException
 import com.wongki.framework.http.listener.OnResponseFailedConvertListener
@@ -22,11 +23,8 @@ class HttpGlobalConfigBuilder : HttpConfigBuilder {
         this.responseClass = config.responseClass
         this.onResponseConvertFailedListener = config.onResponseConvertFailedListener
     }
-    @HttpDsl
     var successfulCode: Int? = null
-    @HttpDsl
     var responseClass: Class<out CommonResponse<*>>? = null
-    @HttpDsl
     internal var onResponseConvertFailedListener: OnResponseFailedConvertListener? = null
 
     /**
@@ -40,7 +38,7 @@ class HttpGlobalConfigBuilder : HttpConfigBuilder {
      *      2.当你能理解这个错误时返回null，当返回null时，你会在观察错误的函数体中接收到code:[HttpErrorCode.PARSE_FAILED]
      *
      * 注：观察错误的函数体
-     * 1.[RetrofitServiceCore.RetrofitRequesterObserverBuilder.onFailed]
+     * 1.[EventObserverBuilder.onFailed]
      * service{
      *      api{...}.thenCall{
      *          observe{
@@ -58,7 +56,6 @@ class HttpGlobalConfigBuilder : HttpConfigBuilder {
      * }
      *
      */
-    @HttpDsl
     fun onResponseConvertFailed(convert: (String, String) -> ApiException?) {
         onResponseConvertFailedListener =
             object : OnResponseFailedConvertListener {
