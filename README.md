@@ -72,7 +72,6 @@ viewModel<MusicViewModel> {
 
         // 订阅，观察数据变动
         observe {
-            owner = this@MusicActivity
             onChange {
                 tv_total.text = "$this"
             }
@@ -89,7 +88,6 @@ viewModel<MusicViewModel> {
 
         // 订阅，观察数据变动
         observe {
-            owner = this@MusicActivity
             onChange {
                 tv_result.text = "$this"
             }
@@ -102,7 +100,6 @@ viewModel<MusicViewModel> {
         
         // 订阅，观察状态和结果
         observe {
-            owner = this@MainActivity
             onStart {}
             onCancel {}
             onSuccess {}
